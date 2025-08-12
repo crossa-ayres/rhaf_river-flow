@@ -1,0 +1,9 @@
+{"peak_flow_criteria_threshold":{
+    "frequent":2.5,
+    "occasional":[2.5,3.5],
+    "rare":[3.5,4.5]}
+}
+
+
+
+
