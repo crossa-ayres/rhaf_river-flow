@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import wget
 import matplotlib.pyplot as plt
+
 import streamlit as st
 
 def download_usgs_data(site_id, begin_year):
@@ -103,14 +104,19 @@ def subset_by_season(df):
     return [spring_df, summer_df, fall_df, winter_df]
 
 def plot_seasonal_data(season_df, usgs_station_id, season):
+    styles = ['-4', ':', '-+', '-o', '-', '--', '-p', '-P', '-x', '-*','-.', '-v', '-^', '-<', '->', '-1', '-8', '-s', '-H', '-X']
+    fig, ax = plt.subplots(figsize=(10,6), )
+    season_df.set_index('year').T.plot(ax=ax, style=styles,linewidth=1,markersize=5,alpha = 0.8, title=f'{season} Average Daily Flow: Gage {usgs_station_id}', legend=True)
+    plt.xlabel('Day', fontweight='bold',fontsize=10)
+    ax.set_facecolor("whitesmoke")
+    plt.minorticks_on()
+    plt.title(f'{season} Average Daily Flow: Gage {usgs_station_id}', fontsize=14, fontweight='bold')
+  
+    plt.ylabel('Average Daily Flow (cfs)', fontweight='bold',fontsize=10)
+    plt.legend(ncol=3, title = "Year")
     
-    fig, ax = plt.subplots(figsize=(10, 6))
-    season_df.set_index('year').T.plot(ax=ax, marker='o', title=f'{season} Average Daily Flow: Gage {usgs_station_id}', legend=False)
-    plt.xlabel('Day')
-    plt.ylabel('Flow (cfs)')
-    #set log axis for y-axis
-    ax.set_yscale('log')  # Set y-axis to logarithmic scale
     #add grid lines to the plot
-    plt.grid(True)
+    ax.grid(which='major', linestyle='-', linewidth=0.35, color='black', alpha = 0.7)  # Major gridlines
+    ax.grid(which='minor', linestyle=':', linewidth=0.25, color='gray', alpha = 0.7)  # Minor gridlines
     return fig
 
