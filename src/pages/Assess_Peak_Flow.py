@@ -1,30 +1,33 @@
 import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-import random
+from PIL import Image
 from utils.peak_flow.peakFlow_utils import peakFlow_main as pfm, generate_summary_df
 from utils.common_utils.utils import subset_by_season, plot_seasonal_data
 
 
 
 st.set_page_config(layout='wide')
+image = Image.open(r'src\Images\peakflow.jpg')
+st.image(image, use_container_width=True)
 st.title("Peak Flow Data Analysis")
-st.subheader("This application allows you to download and analyze peak flow data from the USGS website.")
+st.subheader("This application allows the user to evaluate river health on the basis of flow magnitude. Flow data used for this analysis can either be downloaded from the USGS website or manually uploaded as a txt file.")
+
 st.markdown("##### The application requires the following inputs:")
 st.markdown("- USGS Station ID")
-st.markdown("- Begin Year")
-st.markdown("- Average Daily Flow Threshold (cfs)")
+st.markdown("- Begin Year: The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
+st.markdown("- Average Daily Flow Threshold (cfs): The threshold for average daily flow to determine relevant flow events. This is used to identify flow events that exceed the specified threshold. The default value is 500 cfs, but it can be adjusted based on the user's needs.")
 st.sidebar.header("Input Parameters")
 #add checkbox to determine if the user wants to manually upload data or allow the tool to download it from the USGS website
 
-if st.sidebar.checkbox("Manually upload peak flow data", value=False, key="upload_data"):
-    uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data txt file", type=["txt"])
-elif st.sidebar.checkbox("Download data from USGS website", value=False, key="download_data"):
+
+if st.sidebar.checkbox("Download data from USGS website", value=False, key="download_data"):
     usgs_station_id = st.sidebar.text_input("USGS Station ID")
     begin_year = st.sidebar.text_input("Begin Year")
     pf_threshold = st.sidebar.number_input("Mean Daily Flow Threshold (cfs)", min_value=0, value=500)
+
+elif st.sidebar.checkbox("Manually upload peak flow data", value=False, key="upload_data"):
+    uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data txt file", type=["txt"])
 st.sidebar.markdown("### Note:")
-st.sidebar.markdown("The application will download mean daily flow data from the USGS website and analyze it based on the specified parameters.")
+st.sidebar.markdown("The application will use the mean daily flow data (either downloaded from the USGS website or uploaded by the user) and analyze it based on the specified parameters.")
 
 if st.sidebar.button("Analyze Peak Flow Data"):
 
@@ -61,8 +64,8 @@ if st.sidebar.button("Analyze Peak Flow Data"):
         
         
         #write the yearly analysis
-        st.subheader("Yearly Analysis:")
-        st.write(f"##### Yearly Analysis of Peak Flow Data Above {pf_threshold} cfs:")
+        st.subheader("Yearly Summary:")
+        st.write(f"##### Summary of Peak Flow Data Above {pf_threshold} cfs by Year:")
 
         summary_df = generate_summary_df(yearly_analysis, pf_threshold)
 
@@ -70,7 +73,7 @@ if st.sidebar.button("Analyze Peak Flow Data"):
         #col2.dataframe( unique_years)
         st.dataframe(summary_df)
         #create streamlit bar chart for summary df data
-        st.subheader(f"Bar Chart of Total Days per Year Above {pf_threshold} cfs")
+        st.subheader(f"Bar Chart Showing Total Days per Year Above {pf_threshold} cfs")
         st.bar_chart(summary_df[f"Total Days Above {pf_threshold} cfs"], use_container_width=True)
       
         
