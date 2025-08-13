@@ -1,6 +1,7 @@
 import pandas as pd
 import os
-import wget
+#import wget
+import requests
 import matplotlib.pyplot as plt
 
 import streamlit as st
@@ -22,7 +23,12 @@ def download_usgs_data(site_id, begin_year):
         url = f"https://waterdata.usgs.gov/nwis/dv?cb_00060=on&format=rdb&site_no={site_id}&legacy=&referred_module=sw&period=&begin_date={begin_year}-01-01&end_date={yesterday_str}"
         if not os.path.exists("data/temp"):
             os.makedirs("data/temp")
-        file_path = wget.download(url,os.path.join("data/temp","flow_data.txt"))
+        file_path = requests.get(url)
+        #save the file to the temp directory
+        with open(os.path.join("data/temp","flow_data.txt"), 'wb') as f:
+            f.write(file_path.content)
+
+        file_path = os.path.join("data/temp","flow_data.txt")
         
         
         return file_path
