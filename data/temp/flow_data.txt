@@ -1,0 +1,23 @@
+# ---------------------------------- WARNING ----------------------------------------
+# Some of the data that you have obtained from this U.S. Geological Survey database 
+# may not have received Director's approval. Any such data values are qualified
+# as provisional and are subject to revision. Provisional data are released on the
+# condition that neither the USGS nor the United States Government may be held liable
+# for any damages resulting from its use.
+#
+# Additional info: https://waterdata.usgs.gov/provisional-data-statement/
+#
+# Contact:   gs-w_waterdata_support@usgs.gov
+# retrieved: 2025-08-12 22:49:02 EDT       (caww01)
+#
+# Data for the following 1 site(s) are contained in this file
+#    USGS 06739500 BUCKHORN CREEK NEAR MASONVILLE, CO
+# -----------------------------------------------------------------------------------
+#
+# Data provided for site 06739500
+#            TS   parameter     statistic     Description
+#        325375       00060     00003     Discharge, cubic feet per second (Mean)
+#
+agency_cd	site_no	datetime
+5s	15s	20d	
+

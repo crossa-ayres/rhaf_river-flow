@@ -28,11 +28,11 @@ st.sidebar.markdown("The application will download mean daily flow data from the
 
 if st.sidebar.button("Analyze Peak Flow Data"):
 
-    st.write(f"Analyzing peak flow data for USGS Station ID: {usgs_station_id}, Begin Year: {begin_year}, Mean Daily Flow Threshold: {pf_threshold} cfs")
+    st.write(f"Analyzing peak flow data for USGS Station ID: {usgs_station_id}, starting in {begin_year}, Mean Daily Flow Threshold: {pf_threshold} cfs")
     df, above_thresh_df,yearly_analysis = pfm(site_id=usgs_station_id, begin_year=begin_year, pf_threshold=pf_threshold)
 
     if df is not None:
-        #st.dataframe(df)
+       
         #find the last year data was collected
         last_year = str(df['date'].max())
         last_year = last_year.split(" ")[0]
@@ -59,7 +59,7 @@ if st.sidebar.button("Analyze Peak Flow Data"):
         unique_years = above_thresh_df['year'].unique()
         st.header("Threshold Analysis of Gage Data")
         
-        st.write(f"##### Total number of days with flow above {pf_threshold} cfs:", len(above_thresh_df))
+        
         #write the yearly analysis
         st.subheader("Yearly Analysis:")
         st.write(f"##### Yearly Analysis of Peak Flow Data Above {pf_threshold} cfs:")
@@ -73,11 +73,6 @@ if st.sidebar.button("Analyze Peak Flow Data"):
         st.subheader(f"Bar Chart of Total Days per Year Above {pf_threshold} cfs")
         st.bar_chart(summary_df[f"Total Days Above {pf_threshold} cfs"], use_container_width=True)
       
-        #st.subheader(f"Summary statistics for flow above {pf_threshold} cfs:")
-        #st.write(above_thresh_df['avg_flow'].describe())
-        #plot the flow data
-        #st.subheader("Peak flow plotted data:")
-        #st.line_chart(above_thresh_df.set_index('date')['avg_flow'], use_container_width=True)
         
     else:
         st.write("No dates found with flow above the specified threshold.")

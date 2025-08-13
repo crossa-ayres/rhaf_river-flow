@@ -42,7 +42,7 @@ def yearly_flow_analysis(above_thresh_df):
     for year in years:
         yearly_data = above_thresh_df[above_thresh_df['year'] == year]
         if not yearly_data.empty:
-            yearly_analysis[year] = {
+            yearly_analysis[str(year)] = {
                 'total_days_above_threshold': len(yearly_data),
                 'years_after_previous': year - years[i-1] if i > 0 else 0,
                 'average_flow': yearly_data['avg_flow'].mean(),
