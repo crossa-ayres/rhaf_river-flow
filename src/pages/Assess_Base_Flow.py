@@ -13,7 +13,7 @@ st.title("Base Flow Data Analysis")
 st.subheader("This application allows the user to analyze base flow data using average daily flow. Flow data can either be downloaded from the USGS website or manually uploaded as a txt file.")
 st.markdown("##### The application requires the following inputs:")
 st.markdown("- USGS Station ID")
-st.markdown("- Begin Year: The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
+st.markdown("- Begin Analysis On (year): The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
 
 #st.markdown("- Average Daily Flow Threshold (cfs)")
 st.sidebar.header("Input Parameters")
@@ -22,7 +22,7 @@ st.sidebar.header("Input Parameters")
 
 if st.sidebar.checkbox("Download data from USGS website", value=False, key="download_data"):
     usgs_station_id = st.sidebar.text_input("USGS Station ID")
-    begin_year = st.sidebar.text_input("Begin Year")
+    begin_year = st.sidebar.text_input("Begin Analysis On (year)")
     trout_threshold = st.sidebar.number_input("Stable Flow Threshold (cfs)", min_value=0, value=35)
     min_threshold = st.sidebar.number_input("Minimum Flow Threshold (cfs)", min_value=0, value=10)
     #pf_threshold = st.sidebar.number_input("Mean Daily Flow Threshold (cfs)", min_value=0, value=500)
@@ -84,6 +84,7 @@ if st.sidebar.button("Analyze Base Flow Data"):
         st.write(f"##### Percentage of Days Below {trout_threshold} cfs by Season:")
         if winter_below_threshold > 50:
             st.markdown(f'<h3 style="color:red;">Winter: {winter_below_threshold:.2f}%</h3>', unsafe_allow_html=True)
+            st.write("The number of days in winter where flow is below the stable threshold is greater than 50%. This may indicate that the stream is not suitable for trout during winter months.")
         else:
             st.write(f"Winter: {winter_below_threshold:.2f}%")
         st.write(f"Spring: {spring_below_threshold:.2f}%")
@@ -119,6 +120,7 @@ if st.sidebar.button("Analyze Base Flow Data"):
         st.write(f"##### Percentage of Days Below {min_threshold} cfs by Season:")
         if winter_below_threshold > 10:
             st.markdown(f'<h3 style="color:red;">Winter: {winter_below_threshold:.2f}%</h3>', unsafe_allow_html=True)
+            st.write("The number of days in winter where flow is below the minimum threshold is greater than 10%. This may indicate that the stream is not suitable for aquatic life during winter months.")
         else:
             st.write(f"Winter: {winter_below_threshold:.2f}%")
         st.write(f"Spring: {spring_below_threshold:.2f}%")

@@ -12,7 +12,7 @@ st.subheader("This application allows the user to evaluate river health on the b
 
 st.markdown("##### The application requires the following inputs:")
 st.markdown("- USGS Station ID")
-st.markdown("- Begin Year: The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
+st.markdown("- Begin Analysis On (year): The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
 
 st.markdown("- Number of Outliers to Display")
 
@@ -21,7 +21,7 @@ st.sidebar.header("Input Parameters")
 
 if st.sidebar.checkbox("Download data from USGS website", value=False, key="download_data"):
     usgs_station_id = st.sidebar.text_input("USGS Station ID")
-    begin_year = st.sidebar.text_input("Begin Year")
+    begin_year = st.sidebar.text_input("Begin Analysis On (year)")
     number_outliers = st.sidebar.number_input("Number of Outliers to Display", min_value=1, value=10)
 
 elif st.sidebar.checkbox("Manually upload peak flow data", value=False, key="upload_data"):

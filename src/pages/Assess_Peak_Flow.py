@@ -13,7 +13,7 @@ st.subheader("This application allows the user to evaluate river health on the b
 
 st.markdown("##### The application requires the following inputs:")
 st.markdown("- USGS Station ID")
-st.markdown("- Begin Year: The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
+st.markdown("- Begin Analysis On (year): The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
 st.markdown("- Average Daily Flow Threshold (cfs): The threshold for average daily flow to determine relevant flow events. This is used to identify flow events that exceed the specified threshold. The default value is 500 cfs, but it can be adjusted based on the user's needs.")
 st.sidebar.header("Input Parameters")
 #add checkbox to determine if the user wants to manually upload data or allow the tool to download it from the USGS website
@@ -21,7 +21,7 @@ st.sidebar.header("Input Parameters")
 
 if st.sidebar.checkbox("Download data from USGS website", value=False, key="download_data"):
     usgs_station_id = st.sidebar.text_input("USGS Station ID")
-    begin_year = st.sidebar.text_input("Begin Year")
+    begin_year = st.sidebar.text_input("Begin Analysis On (year)")
     pf_threshold = st.sidebar.number_input("Mean Daily Flow Threshold (cfs)", min_value=0, value=500)
 
 elif st.sidebar.checkbox("Manually upload peak flow data", value=False, key="upload_data"):
