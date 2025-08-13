@@ -4,7 +4,7 @@ from PIL import Image
 st.set_page_config(layout='wide')
 from utils.rate_change.rateChange_utils import rate_change_main
 
-image = Image.open(r'src\Images\roc.jpg')
+image = Image.open('./src/Images/roc.jpg')
 st.image(image, use_container_width=True)
  
 st.title("Rate of Change Data Analysis")
@@ -14,7 +14,8 @@ st.markdown("##### The application requires the following inputs:")
 st.markdown("- USGS Station ID")
 st.markdown("- Begin Analysis On (year): The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
 
-st.markdown("- Number of Outliers to Display")
+st.markdown("- Number of Outliers to Display: This application will indentify many outliers over the period of record for the gage. " \
+"The user can specify how many of the top outliers (greatest magnitude of the derivative) to display in the analysis. The default value is 10, but it can be adjusted based on the user's needs.")
 
 st.sidebar.header("Input Parameters")
 #add checkbox to determine if the user wants to manually upload data or allow the tool to download it from the USGS website
