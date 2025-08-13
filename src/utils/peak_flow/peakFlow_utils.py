@@ -1,8 +1,5 @@
-import wget
+
 import pandas as pd
-import datetime as dt
-import os
-import json
 import streamlit as st
 
 from utils.common_utils.utils import download_usgs_data, load_flow_data
@@ -76,8 +73,6 @@ def peakFlow_main(site_id = "06752280", begin_year="2015", pf_threshold = 200):
     file_path = download_usgs_data(site_id, begin_year)
     if file_path:
 
-        with open('src/utils/criteria/peak_flow/peakflow.json', 'r') as f:
-            criteria = json.load(f)
 
         df= load_flow_data(file_path)
         if df is not None:
