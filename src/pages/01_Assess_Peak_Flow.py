@@ -6,29 +6,42 @@ from utils.common_utils.utils import subset_by_season, plot_seasonal_data
 
 
 st.set_page_config(layout='wide')
-image = Image.open('./src/Images/peakflow.png')
+image = Image.open('./src/Images/peakflow.jpg')
 st.image(image, use_container_width=True)
 st.title("Peak Flow Data Analysis")
 st.subheader("This application allows the user to evaluate river health on the basis of flow magnitude. Flow data used for this analysis can either be downloaded from the USGS website or manually uploaded as a txt file.")
 
 st.markdown("##### The application requires the following inputs:")
-st.markdown("- USGS Station ID")
-st.markdown("- Begin Analysis On (year): The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
-st.markdown("- Average Daily Flow Threshold (cfs): The threshold for average daily flow to determine relevant flow events. This is used to identify flow events that exceed the specified threshold. The default value is 500 cfs, but it can be adjusted based on the user's needs.")
+st.markdown("- **USGS Station ID**")
+st.markdown("- **Begin Analysis On (year)**: The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
+st.markdown("- **Average Daily Flow Threshold (cfs)**: The threshold for average daily flow to determine relevant flow events. This is used to identify flow events that exceed the specified threshold. The default value is 500 cfs, but it can be adjusted based on the user's needs.")
 st.sidebar.header("Input Parameters")
 #add checkbox to determine if the user wants to manually upload data or allow the tool to download it from the USGS website
 
 
-if st.sidebar.checkbox("Download data from USGS website", value=False, key="download_data"):
-    usgs_station_id = st.sidebar.text_input("USGS Station ID")
-    begin_year = st.sidebar.text_input("Begin Analysis On (year)")
-    pf_threshold = st.sidebar.number_input("Mean Daily Flow Threshold (cfs)", min_value=0, value=500)
+if st.sidebar.checkbox("**Download data from USGS website**", value=False, key="download_data"):
+    usgs_station_id = st.sidebar.text_input("**USGS Station ID**")
+    begin_year = st.sidebar.text_input("**Begin Analysis On (year)**")
+    pf_threshold = st.sidebar.number_input("**Mean Daily Flow Threshold (cfs)**", min_value=0, value=500)
 
-elif st.sidebar.checkbox("Manually upload peak flow data", value=False, key="upload_data"):
+elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):
     uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data txt file", type=["txt"])
 st.sidebar.markdown("### Note:")
 st.sidebar.markdown("The application will use the mean daily flow data (either downloaded from the USGS website or uploaded by the user) and analyze it based on the specified parameters.")
-
+st.markdown("""
+    <style>
+    div.stButton > button {
+        background-color: grey;
+        color: white;
+        border-radius: 10px;
+        border: black;
+    }
+    div.stButton > button:hover {
+        background-color: dark grey;
+        color: black;
+    }
+    </style>
+""", unsafe_allow_html=True)
 if st.sidebar.button("Analyze Peak Flow Data"):
 
     st.write(f"Analyzing peak flow data for USGS Station ID: {usgs_station_id}, starting in {begin_year}, Mean Daily Flow Threshold: {pf_threshold} cfs")

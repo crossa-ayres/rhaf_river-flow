@@ -10,6 +10,6 @@ font = 'sans-serif'
 
 [theme.sidebar]
 
-primaryColor="#5e9c9c"
-backgroundColor="#c2b280"
+primaryColor="#000000"
+backgroundColor="#dcdcdc"
 textColor="#000000"

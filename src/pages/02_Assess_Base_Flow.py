@@ -12,27 +12,40 @@ st.image(image, use_container_width=True)
 st.title("Base Flow Data Analysis")
 st.subheader("This application allows the user to analyze base flow data using average daily flow. Flow data can either be downloaded from the USGS website or manually uploaded as a txt file.")
 st.markdown("##### The application requires the following inputs:")
-st.markdown("- USGS Station ID")
-st.markdown("- Begin Analysis On (year): The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
+st.markdown("- **USGS Station ID**")
+st.markdown("- **Begin Analysis On (year)**: The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
 
 #st.markdown("- Average Daily Flow Threshold (cfs)")
 st.sidebar.header("Input Parameters")
 #add checkbox to determine if the user wants to manually upload data or allow the tool to download it from the USGS website
 
 
-if st.sidebar.checkbox("Download data from USGS website", value=False, key="download_data"):
+if st.sidebar.checkbox("**Download data from USGS website**", value=False, key="download_data"):
     usgs_station_id = st.sidebar.text_input("USGS Station ID")
     begin_year = st.sidebar.text_input("Begin Analysis On (year)")
     trout_threshold = st.sidebar.number_input("Stable Flow Threshold (cfs)", min_value=0, value=35)
     min_threshold = st.sidebar.number_input("Minimum Flow Threshold (cfs)", min_value=0, value=10)
     #pf_threshold = st.sidebar.number_input("Mean Daily Flow Threshold (cfs)", min_value=0, value=500)
 
-elif st.sidebar.checkbox("Manually upload peak flow data", value=False, key="upload_data"):
+elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):
     uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data txt file", type=["txt"])
 
 st.sidebar.markdown("### Note:")
 st.sidebar.markdown("The application will download mean daily flow data from the USGS website and analyze it based on the specified parameters.")
-
+st.markdown("""
+    <style>
+    div.stButton > button {
+        background-color: grey;
+        color: white;
+        border-radius: 10px;
+        border: black;
+    }
+    div.stButton > button:hover {
+        background-color: dark grey;
+        color: black;
+    }
+    </style>
+""", unsafe_allow_html=True)
 if st.sidebar.button("Analyze Base Flow Data"):
 
     st.write(f"Analyzing base flow data for USGS Station ID: {usgs_station_id}, analysis starting in {begin_year}")
