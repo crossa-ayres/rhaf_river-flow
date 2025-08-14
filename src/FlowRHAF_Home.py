@@ -20,11 +20,13 @@ st.write("To test out the tool, the user can use the following USGS Station IDs:
 st.markdown("- Peak Flow Analysis: 06721000 (South Platte River at Fort Lupton, CO.), period of record: 04/29/1929 - 08/12/2025")
 st.markdown("- Base Flow Analysis: 06752280 (Cache La Poudre River at Fort Collins, CO.), period of record: 10/01/1979 - 08/12/2025")
 st.markdown("- Rate of Change Analysis: 06752260 (Cache La Poudre River at Fort Collins, CO.) 04/08/1975 - 08/12/2025")
-
+st.markdown(f"#### For additional information on the RHAF, please visit the Coalition for the Poudre Watershed website at the following link:"\
+                   " https://www.poudrewatershed.org/rhaf")
 
 
 
 
 
 st.sidebar.markdown("# Home")
+
 

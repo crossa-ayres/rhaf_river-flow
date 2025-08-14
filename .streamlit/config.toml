@@ -3,7 +3,7 @@ primaryColor="#f8f8ff"
 backgroundColor="#f8f8ff"
 secondaryBackgroundColor="#dcdcdc"
 textColor="#000000"
-baseFontSize=18
+baseFontSize=16
 
 
 font = 'sans-serif'
