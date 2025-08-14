@@ -48,7 +48,7 @@ if st.sidebar.button("Analyze Base Flow Data"):
         last_year = str(df['date'].max())
         last_year = last_year.split(" ")[0]
         st.write(f"### Gage ID {usgs_station_id} contains data up until {last_year}")
-        st.subheader(f"Plotted average daily flow data for gage {usgs_station_id}")
+        st.subheader(f"Average daily flow data for gage {usgs_station_id}")
         st.line_chart(df.set_index('date')['avg_flow'], use_container_width=True)
 
         df_group = subset_by_season(df)
@@ -80,7 +80,7 @@ if st.sidebar.button("Analyze Base Flow Data"):
         summer_below_threshold = (summer_df[summer_df['avg_flow'] < trout_threshold].shape[0] / summer_df.shape[0]) * 100
         fall_below_threshold = (fall_df[fall_df['avg_flow'] < trout_threshold].shape[0] / fall_df.shape[0]) * 100
     
-        st.markdown(f'<h2 style="color:red;">Seasonal Analysis of Flow Below Stable Threshold ({trout_threshold} cfs)</h2>', unsafe_allow_html=True)
+        st.markdown(f'<h2 style="color:black;">Seasonal Analysis of Flow Below Stable Threshold ({trout_threshold} cfs)</h2>', unsafe_allow_html=True)
         st.write(f"##### Percentage of Days Below {trout_threshold} cfs by Season:")
         if winter_below_threshold > 50:
             st.markdown(f'<h3 style="color:red;">Winter: {winter_below_threshold:.2f}%</h3>', unsafe_allow_html=True)
@@ -116,7 +116,7 @@ if st.sidebar.button("Analyze Base Flow Data"):
         summer_below_threshold = (summer_df[summer_df['avg_flow'] < min_threshold].shape[0] / summer_df.shape[0]) * 100
         fall_below_threshold = (fall_df[fall_df['avg_flow'] < min_threshold].shape[0] / fall_df.shape[0]) * 100
     
-        st.markdown(f'<h2 style="color:red;">Seasonal Analysis of Flow Below Minimum Threshold ({min_threshold} cfs)</h2>', unsafe_allow_html=True)
+        st.markdown(f'<h2 style="color:black;">Seasonal Analysis of Flow Below Minimum Threshold ({min_threshold} cfs)</h2>', unsafe_allow_html=True)
         st.write(f"##### Percentage of Days Below {min_threshold} cfs by Season:")
         if winter_below_threshold > 10:
             st.markdown(f'<h3 style="color:red;">Winter: {winter_below_threshold:.2f}%</h3>', unsafe_allow_html=True)

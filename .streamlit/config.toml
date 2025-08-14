@@ -1,0 +1,15 @@
+[theme]
+primaryColor="#f8f8ff"
+backgroundColor="#f8f8ff"
+secondaryBackgroundColor="#dcdcdc"
+textColor="#000000"
+baseFontSize=18
+
+
+font = 'sans-serif'
+
+[theme.sidebar]
+
+primaryColor="#5e9c9c"
+backgroundColor="#c2b280"
+textColor="#000000"
