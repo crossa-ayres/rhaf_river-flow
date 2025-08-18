@@ -48,6 +48,8 @@ if st.sidebar.button("Analyze Peak Flow Data"):
     df, above_thresh_df,yearly_analysis = pfm(site_id=usgs_station_id, begin_year=begin_year, pf_threshold=pf_threshold)
 
     if df is not None:
+        st.write("### Average Daily Flow Data")
+        st.write(df)
        
         #find the last year data was collected
         last_year = str(df['date'].max())
@@ -91,4 +93,4 @@ if st.sidebar.button("Analyze Peak Flow Data"):
       
         
     else:
-        st.write("No dates found with flow above the specified threshold.")
+        st.header("No dates found with flow above the specified threshold.")

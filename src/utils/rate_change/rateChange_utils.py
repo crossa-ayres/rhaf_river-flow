@@ -2,7 +2,10 @@
 import pandas as pd
 import streamlit as st
 
-from utils.common_utils.utils import download_usgs_data, load_flow_data
+from utils.common_utils.utils import download_usgs_data, load_flow_data, clean_temp_files, create_location_plot
+
+
+
 
 
 def calculate_flow_dirivatives(df):
@@ -40,7 +43,7 @@ def identify_derivative_outliers(df):
         df['is_outlier'] = (df['flow_derivative'] > median + 3 * std_dev) | (df['flow_derivative'] < median - 3 * std_dev)
         # Fill NaN values in 'is_outlier' with False
         df['is_outlier'].fillna(False, inplace=True)
-        st.write("Outliers identified in flow derivatives.")
+       
         # Return the DataFrame with the outlier information
         return df
     else:
@@ -58,11 +61,15 @@ def rate_change_main(usgs_station_id, begin_year):
     Returns:
         pd.DataFrame: A DataFrame containing the rate change data with derivatives calculated.
     """
-    file_path = download_usgs_data(usgs_station_id, begin_year)
+    file_path, info_path = download_usgs_data(usgs_station_id, begin_year)
+
     if file_path:
+        create_location_plot(info_path, usgs_station_id)
+        
         df = load_flow_data(file_path)
         df = calculate_flow_dirivatives(df)
         df = identify_derivative_outliers(df)
+        clean_temp_files(file_path, info_path)
         return df
     else:
         return pd.DataFrame(columns=['date', 'avg_flow', 'flow_derivative'])  # Return empty DataFrame if download fails

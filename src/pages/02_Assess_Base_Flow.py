@@ -50,12 +50,21 @@ if st.sidebar.button("Analyze Base Flow Data"):
 
     st.write(f"Analyzing base flow data for USGS Station ID: {usgs_station_id}, analysis starting in {begin_year}")
     df, trout_analysis, min_analysis = bfm(usgs_station_id,begin_year,trout_threshold, min_threshold)
-    #convert trout_analysis to a dataframe
+    st.write("### Average Daily Flow Data")
+    st.write(df)
     trout_analysis_df = pd.DataFrame.from_dict(trout_analysis, orient='index').reset_index()
-    trout_analysis_df.columns = ['year', 'Total Days Below Threshold', 'Years After Previous', 'Average Flow Below Threshold', 'Max Flow Below Threshold', 'Min Flow Below Threshold']
     min_analysis_df = pd.DataFrame.from_dict(min_analysis, orient='index').reset_index()
-    min_analysis_df.columns = ['year', 'Total Days Below Min Threshold', 'Years After Previous', 'Average Flow Below Min Threshold', 'Max Flow Below Min Threshold', 'Min Flow Below Min Threshold']
-    if df is not None:
+    if trout_analysis_df.empty:
+        st.header(f"No flow events exist below the stable flow threshold of {trout_threshold} cfs, skipping analysis.")
+    
+    else:
+        #convert trout_analysis to a dataframe
+        
+        
+        trout_analysis_df.columns = ['year', 'Total Days Below Threshold', 'Years After Previous', 'Average Flow Below Threshold', 'Max Flow Below Threshold', 'Min Flow Below Threshold']
+        
+        
+        
         #st.dataframe(df)
         #find the last year data was collected
         last_year = str(df['date'].max())
@@ -75,7 +84,7 @@ if st.sidebar.button("Analyze Base Flow Data"):
                 fig = plot_seasonal_data(season_df, usgs_station_id, season)
                 st.pyplot(fig)
     
-    if not trout_analysis_df.empty:
+    
         
     
         st.title(f"Threshold Analysis of Gage Data - Stable Flow Threshold ({trout_threshold} cfs)")
@@ -118,11 +127,18 @@ if st.sidebar.button("Analyze Base Flow Data"):
             st.bar_chart(summary_df[f"Total Days Below {trout_threshold} cfs"], use_container_width=True)
 
         
+   
+    if min_analysis_df.empty:
+        st.header(f"No flow events exist below the minimum flow threshold of {min_threshold} cfs, skipping analysis.")
     else:
-        st.write(f"No data available below the stable flow threshold of {trout_threshold} cfs.")
-    if not min_analysis_df.empty:
+        min_analysis_df.columns = ['year', 'Total Days Below Min Threshold', 'Years After Previous', 'Average Flow Below Min Threshold', 'Max Flow Below Min Threshold', 'Min Flow Below Min Threshold']
         st.title(f"Threshold Analysis of Gage Data - Minimum Flow Threshold ({min_threshold} cfs)")
-        
+
+        spring_df = df[df['season'] == 'Spring']
+        summer_df = df[df['season'] == 'Summer']
+        fall_df = df[df['season'] == 'Fall']
+        winter_df = df[df['season'] == 'Winter']
+
          #calculate percent of days in winter_df where flow is below trout_threshold
         winter_below_threshold = (winter_df[winter_df['avg_flow'] < min_threshold].shape[0] / winter_df.shape[0]) * 100
         spring_below_threshold = (spring_df[spring_df['avg_flow'] < min_threshold].shape[0] / spring_df.shape[0]) * 100
@@ -154,7 +170,6 @@ if st.sidebar.button("Analyze Base Flow Data"):
             st.bar_chart(summary_df[f"Total Days Below {min_threshold} cfs"], use_container_width=True, color="#ffaa00")
 
        
-    else:
-        st.write(f"No data available below the minimum flow threshold of {min_threshold} cfs.")
+   
   
     

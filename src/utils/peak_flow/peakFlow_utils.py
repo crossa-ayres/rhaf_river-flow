@@ -2,7 +2,7 @@
 import pandas as pd
 import streamlit as st
 
-from utils.common_utils.utils import download_usgs_data, load_flow_data
+from utils.common_utils.utils import download_usgs_data, load_flow_data, clean_temp_files,create_location_plot
 
 
 
@@ -70,14 +70,16 @@ def peakFlow_main(site_id = "06752280", begin_year="2015", pf_threshold = 200):
     Args:
         url (str): The URL to download the peak flow data from.
     """
-    file_path = download_usgs_data(site_id, begin_year)
+    file_path, info_path = download_usgs_data(site_id, begin_year)
     if file_path:
+        create_location_plot(info_path, site_id)
 
 
         df= load_flow_data(file_path)
         if df is not None:
             above_thresh_df = subset_flow_above_threshold(df, pf_threshold)
             yearly_analysis = yearly_flow_analysis(above_thresh_df)
+            clean_temp_files(file_path, info_path)
             return df, above_thresh_df, yearly_analysis
             
         else:

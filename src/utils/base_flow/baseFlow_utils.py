@@ -1,5 +1,7 @@
 import pandas as pd
-from utils.common_utils.utils import download_usgs_data, load_flow_data
+
+from utils.common_utils.utils import download_usgs_data, load_flow_data,  clean_temp_files, create_location_plot
+
 
 
 def subset_flow_below_threshold(df, trout_threshold=35, min_threshold=10):
@@ -59,13 +61,19 @@ def baseFlow_main(site_id, begin_year,trout_threshold, min_threshold):
     Args:
         url (str): The URL to download the peak flow data from.
     """
-    file_path = download_usgs_data(site_id, begin_year)
+    file_path, info_path = download_usgs_data(site_id, begin_year)
     if file_path:
+        create_location_plot(info_path, site_id)
         df = load_flow_data(file_path)
+        
         below_trout_threshold_df,below_min_threshold_df = subset_flow_below_threshold(df, trout_threshold, min_threshold)
+        
         trout_analysis = yearly_threshold_analysis(below_trout_threshold_df)
+        
         min_analysis = yearly_threshold_analysis(below_min_threshold_df)
+        clean_temp_files(file_path, info_path)
 
         return df, trout_analysis, min_analysis
+        
     else:
         return None
