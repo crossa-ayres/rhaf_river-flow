@@ -195,11 +195,8 @@ def extract_site_info(info_path):
                 
 def create_location_plot(info_path, site_id):
     location_df = extract_site_info(info_path)
-    attr = (
-    '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> '
-    'contributors, &copy; <a href="https://cartodb.com/attributions">CartoDB</a>'
-)
-    tiles = 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg'
+    attr = ('Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a>')
+    tiles = 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}'
     
     m = folium.Map(location=[location_df["latitude"],location_df["longitude"]], tiles=tiles,attr = "Aerial Imagery", zoom_start=16)
     
