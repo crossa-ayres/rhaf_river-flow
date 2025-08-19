@@ -2,7 +2,7 @@
 import pandas as pd
 import streamlit as st
 
-from utils.common_utils.utils import download_usgs_data, load_flow_data, clean_temp_files,create_location_plot
+from utils.common_utils.utils import download_usgs_data, load_flow_data, clean_temp_files,create_location_plot,manual_upload_daily_flow_data
 
 
 
@@ -63,24 +63,27 @@ def generate_summary_df(yearly_analysis, pf_threshold):
     summary_df = pd.DataFrame.from_dict(summary_dict, orient='index')
     return summary_df
     
-def peakFlow_main(site_id = "06752280", begin_year="2015", pf_threshold = 200):
+def peakFlow_main(usgs_station_id = None, begin_year="2015", pf_threshold = 200,upload_type= "downloaded",uploaded_file=None):
     """
     Main function to download and load peak flow data.
     
     Args:
         url (str): The URL to download the peak flow data from.
     """
-    file_path, info_path = download_usgs_data(site_id, begin_year)
-    if file_path:
-        create_location_plot(info_path, site_id)
-
-
-        df= load_flow_data(file_path)
+    if upload_type == "downloaded":
+        st.write("Downloading data from USGS...")
+        file_path, info_path = download_usgs_data(usgs_station_id, begin_year)
+        df = load_flow_data(file_path)
+    elif upload_type == "uploaded":
+        df,info_path, usgs_station_id = manual_upload_daily_flow_data(uploaded_file)
+        
+    if info_path:
+        create_location_plot(info_path, usgs_station_id)
         if df is not None:
             above_thresh_df = subset_flow_above_threshold(df, pf_threshold)
             yearly_analysis = yearly_flow_analysis(above_thresh_df)
             clean_temp_files(file_path, info_path)
-            return df, above_thresh_df, yearly_analysis
+            return df, above_thresh_df, yearly_analysis,usgs_station_id
             
         else:
             st.write("No data available for the specified parameters. Please check the USGS Station ID including any leading zero's.")

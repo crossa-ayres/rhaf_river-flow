@@ -3,6 +3,7 @@ import os
 import requests
 import matplotlib.pyplot as plt
 
+
 import streamlit as st
 import folium
 from streamlit_folium import folium_static
@@ -22,29 +23,83 @@ def download_usgs_data(site_id, begin_year):
         yesterday = pd.Timestamp.now() - pd.Timedelta(days=1)
         yesterday_str = yesterday.strftime('%Y-%m-%d')
 
-        information_url = f"https://waterdata.usgs.gov/nwis/inventory/?site_no={site_id}&agency_cd=USGS"
+        
         url = f"https://waterdata.usgs.gov/nwis/dv?cb_00060=on&format=rdb&site_no={site_id}&legacy=&referred_module=sw&period=&begin_date={begin_year}-01-01&end_date={yesterday_str}"
 
         if not os.path.exists("data/temp"):
             os.makedirs("data/temp")
         file_path = requests.get(url)
-        info_path = requests.get(information_url)
+        
         #save the file to the temp directory
         with open(os.path.join("data/temp","flow_data.txt"), 'wb') as f:
             f.write(file_path.content)
-        with open(os.path.join("data/temp","info_data.txt"), 'wb') as f:
-            f.write(info_path.content)
+        
 
         file_path = os.path.join("data/temp","flow_data.txt")
-        info_path = os.path.join("data/temp","info_data.txt")
         
+        info_path = download_site_coords(site_id)
         
         return file_path, info_path
     except Exception as e:
         st.error(f"Error downloading peak flow data: {e}")
        
         return None
+def download_site_coords(site_id):
+    """
+    Downloads the site coordinates from the USGS website.
     
+    Args:
+        site_id (str): The USGS site ID.
+        
+    Returns:
+        dict: A dictionary containing the site coordinates.
+    """
+    information_url = f"https://waterdata.usgs.gov/nwis/inventory/?site_no={site_id}&agency_cd=USGS"
+    info_path = requests.get(information_url)
+    with open(os.path.join("data/temp","info_data.txt"), 'wb') as f:
+        f.write(info_path.content)
+    info_path = os.path.join("data/temp","info_data.txt")
+    return info_path
+    
+def manual_upload_daily_flow_data(uploaded_file):
+    """
+    Loads the peak flow data from an uploaded file into a pandas DataFrame.
+    
+    Args:
+        uploaded_file (UploadedFile): The uploaded file containing peak flow data.
+        
+    Returns:
+        pd.DataFrame: The loaded peak flow data.
+    """
+    try:
+        
+        data = pd.read_csv(uploaded_file, delimiter='\t', on_bad_lines='skip', header = None)
+        
+        data.columns = ['temp']
+        #define the temp column as a string
+        data2 = pd.read_csv(uploaded_file, delimiter=' ', on_bad_lines='skip',skiprows=29, header = None)
+        st.write("this is data ",data2)
+        row = data.iloc[13]
+        #convert the row to a string and split it by tab
+        row = str(row[0])
+        
+        
+        usgs_station_id = row.split(' ')
+        #remove empty strings from the list
+        usgs_station_id = [x for x in usgs_station_id if x]
+        usgs_station_id = usgs_station_id[2]
+        
+        
+        df = load_flow_data(uploaded_file)
+        st.write(df)
+        info_path = download_site_coords(usgs_station_id)
+        
+        return df,info_path, usgs_station_id
+    except Exception as e:
+        st.error(f"Error loading peak flow data: {e}")
+       
+        return None
+
 
 def load_flow_data(file_path):
     """
@@ -58,6 +113,7 @@ def load_flow_data(file_path):
     """
     try:
         df = pd.read_csv(file_path, delimiter='\t', on_bad_lines='skip', skiprows=29, header = None)
+        
         df.columns = ['agency_cd', 'site_no', 'date', 'avg_flow', 'qc']
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
         df['avg_flow'] = pd.to_numeric(df['avg_flow'], errors='coerce')
@@ -153,7 +209,7 @@ def create_location_plot(info_path, site_id):
     
     #folium.LayerControl().add_to(m)
     st.header(f"Gage {site_id} Location")
-    folium_static(m, width=1800, height=500)
+    folium_static(m, width=3000, height=500)
             
 
 def subset_by_season(df):
@@ -195,19 +251,20 @@ def subset_by_season(df):
     return [spring_df, summer_df, fall_df, winter_df]
 
 def plot_seasonal_data(season_df, usgs_station_id, season):
+    plt.style.use(['ggplot'])
     styles = ['-4', ':', '-+', '-o', '-', '--', '-p', '-P', '-x', '-*','-.', '-v', '-^', '-<', '->', '-1', '-8', '-s', '-H', '-X']
-    fig, ax = plt.subplots(figsize=(10,6), )
-    season_df.set_index('year').T.plot(ax=ax, style=styles,linewidth=1,markersize=5,alpha = 0.8, title=f'{season} Average Daily Flow: Gage {usgs_station_id}', legend=True)
-    plt.xlabel('Day', fontweight='bold',fontsize=10)
-    ax.set_facecolor("whitesmoke")
+    fig, ax = plt.subplots(figsize=(10,4), )
+    season_df.set_index('year').T.plot(ax=ax, style=styles,linewidth=1,markersize=5, title=f'{season} Average Daily Flow: Gage {usgs_station_id}', legend=True)
+    plt.xlabel('Day', fontsize=8)
+    ax.set_facecolor("#999997")  # Set the background color of the plot area
     plt.minorticks_on()
-    plt.title(f'{season} Average Daily Flow: Gage {usgs_station_id}', fontsize=14, fontweight='bold')
+    plt.title(f'{season} Average Daily Flow: Gage {usgs_station_id}', fontsize=10)
   
-    plt.ylabel('Average Daily Flow (cfs)', fontweight='bold',fontsize=10)
+    plt.ylabel('Average Daily Flow (cfs)', fontsize=8)
     plt.legend(ncol=3, title = "Year")
     
     #add grid lines to the plot
-    ax.grid(which='major', linestyle='-', linewidth=0.35, color='black', alpha = 0.7)  # Major gridlines
-    ax.grid(which='minor', linestyle=':', linewidth=0.25, color='gray', alpha = 0.7)  # Minor gridlines
+    #ax.grid(which='major', linestyle='-', linewidth=0.35, color='black', alpha = 0.7)  # Major gridlines
+    #ax.grid(which='minor', linestyle=':', linewidth=0.25, color='gray', alpha = 0.7)  # Minor gridlines
     return fig
 
