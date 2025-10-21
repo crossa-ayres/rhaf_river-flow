@@ -49,10 +49,11 @@ if st.sidebar.button("Analyze Rate of Change of Flow Data"):
     st.write(f"Analyzing base flow data for USGS Station ID: {usgs_station_id}, analysis starting in {begin_year}")
     
     flow_derivative_df = rate_change_main(usgs_station_id, begin_year)
-    flow_derivative_df['datetime'] = flow_derivative_df['date']
+    
     flow_derivative_df['date'] = pd.to_datetime(flow_derivative_df['date'], errors='coerce')
+    flow_derivative_df['datetime'] = flow_derivative_df['date']
     #subset flow_derivative_df to only include dates between august 1 and november 1
-    flow_derivative_df = flow_derivative_df[(flow_derivative_df['date'].dt.month >= 8) & (flow_derivative_df['date'].dt.month <= 11)]
+    
 
     
     if not flow_derivative_df.empty:
@@ -68,9 +69,10 @@ if st.sidebar.button("Analyze Rate of Change of Flow Data"):
 
         st.header("Flow Rate of Change")
         st.subheader("Flow rate of change represents the day-to-day change in average flow across the period of gage record. Rate of change outliers are identified " \
-        "as those that are more than 3 standard deviations from the median day-to-day rate of change across the period of record for the gage.")
+        "as those that are more than 3 standard deviations from the median day-to-day rate of change across the period of record for the gage. Outliers are only identified between August 1 and October 31")
         st.line_chart(flow_derivative_df.set_index('date')['flow_derivative'],x_label="Date", y_label="Flow Derivative", use_container_width=True)
         #extract the date associated with the outliers
+        flow_derivative_df = flow_derivative_df[(flow_derivative_df['date'].dt.month >= 8) & (flow_derivative_df['date'].dt.month <= 10)]
         outliers = flow_derivative_df[flow_derivative_df['is_outlier']]
         if not outliers.empty:
             st.header("Outliers Identified in Flow Rate of Change")
@@ -98,8 +100,8 @@ if st.sidebar.button("Analyze Rate of Change of Flow Data"):
                     #day = date.datetime.day
                     st.write(f"### Insights for Outlier on {date_current}")
                     
-                    before_outlier = flow_derivative_df[(flow_derivative_df['datetime'].dt.date >= start_date) & (flow_derivative_df['datetime'].dt.date < date_current)]
-                    after_outlier = flow_derivative_df[(flow_derivative_df['datetime'].dt.date > date_current) & (flow_derivative_df['datetime'].dt.date <= end_date)]
+                    before_outlier = flow_derivative_df[(flow_derivative_df['datetime'] >= start_date) & (flow_derivative_df['datetime'] < date_current)]
+                    after_outlier = flow_derivative_df[(flow_derivative_df['datetime'] > date_current) & (flow_derivative_df['datetime'] <= end_date)]
                     avg_before = before_outlier['flow_derivative'].mean()
                     avg_after = after_outlier['flow_derivative'].mean()
                     st.write(f"- Average Rate of Change 15 Days Before Outlier: {avg_before:.2f}")
