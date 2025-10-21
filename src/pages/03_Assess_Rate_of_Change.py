@@ -51,6 +51,9 @@ if st.sidebar.button("Analyze Rate of Change of Flow Data"):
     flow_derivative_df = rate_change_main(usgs_station_id, begin_year)
     flow_derivative_df['datetime'] = flow_derivative_df['date']
     flow_derivative_df['date'] = pd.to_datetime(flow_derivative_df['date']).dt.date
+    #subset flow_derivative_df to only include dates between august 1 and november 1
+    flow_derivative_df = flow_derivative_df[(flow_derivative_df['date'].dt.month >= 8) & (flow_derivative_df['date'].dt.month <= 11)]
+
     
     if not flow_derivative_df.empty:
         #find the last year data was collected
