@@ -82,7 +82,7 @@ def peakFlow_main(usgs_station_id = None, begin_year="2015",end_year = "2025", p
     """
     if upload_type == "downloaded":
         st.write("Downloading data from USGS...")
-        file_path, info_path = download_usgs_data(usgs_station_id, begin_year,end_year)
+        file_path, info_path = download_usgs_data(usgs_station_id, begin_year)
         df = load_flow_data(file_path)
     elif upload_type == "uploaded":
         df,info_path, usgs_station_id = manual_upload_daily_flow_data(uploaded_file)
