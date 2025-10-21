@@ -23,7 +23,7 @@ st.sidebar.header("Input Parameters")
 if st.sidebar.checkbox("**Download data from USGS website**", value=False, key="download_data"):
     usgs_station_id = st.sidebar.text_input("USGS Station ID")
     begin_year = st.sidebar.text_input("Begin Analysis On (year)")
-    number_outliers = st.sidebar.number_input("Number of Outliers to Display", min_value=1, value=10)
+    number_outliers = st.sidebar.number_input("Number of Outliers to Display", min_value=1, value=3)
 
 elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):
     uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data txt file", type=["txt"])
@@ -57,65 +57,68 @@ if st.sidebar.button("Analyze Rate of Change of Flow Data"):
         last_year = str(flow_derivative_df['date'].max())
         last_year = last_year.split(" ")[0]
         st.write(f"### Gage ID {usgs_station_id} contains data up until {last_year}")
-        st.write("### Average Daily Flow Data with Derivatives and Outliers Identified")
-        st.write(flow_derivative_df)
+        st.write("### Average Daily Flow Data with Rate of Change and Outliers Identified")
+        with st.expander("View Average Daily Flow Data with Rate of Change and Outliers Identified"):
+            st.write(flow_derivative_df)
         st.header(f"Average daily flow data for gage {usgs_station_id}")
         st.line_chart(flow_derivative_df.set_index('date')['avg_flow'],x_label="Date", y_label="Average Daily Flow (cfs)", use_container_width=True)
 
-        st.header("Flow Derivatives")
-        st.subheader("Flow derivatives represent the day-to-day change in average flow across the period of gage record. Derivative outliers are identified " \
+        st.header("Flow Rate of Change")
+        st.subheader("Flow rate of change represents the day-to-day change in average flow across the period of gage record. Rate of change outliers are identified " \
         "as those that are more than 3 standard deviations from the median day-to-day rate of change across the period of record for the gage.")
         st.line_chart(flow_derivative_df.set_index('date')['flow_derivative'],x_label="Date", y_label="Flow Derivative", use_container_width=True)
         #extract the date associated with the outliers
         outliers = flow_derivative_df[flow_derivative_df['is_outlier']]
         if not outliers.empty:
-            st.header("Outliers Identified in Flow Derivatives")
-            st.write(outliers[['date', 'avg_flow']])
+            st.header("Outliers Identified in Flow Rate of Change")
+            with st.expander("View All Outliers Identified in Flow Rate of Change"):
+                st.write(outliers[['date', 'avg_flow']])
             
             #identify the top n number of outliers
             top_outliers = outliers.nlargest(number_outliers, 'flow_derivative')
-            st.write(f"### Top {number_outliers} Outliers Identified in Flow Derivatives")
-            st.write(top_outliers[['date', 'avg_flow', 'flow_derivative']])
+            st.write(f"### Top {number_outliers} Outliers Identified in Flow Rate of Change")
+            with st.expander(f"View Top {number_outliers} Outliers Identified in Flow Rate of Change"):
+                st.write(top_outliers[['date', 'avg_flow', 'flow_derivative']])
             #find the index in df of the top outliers and plot 5 days before and after the outlier
-            st.subheader("Flow Derivative Outlier Analysis")
-            st.write("The following plots show the average daily flow data for the 60 days before and after each outlier identified in flow derivatives.")
+            st.subheader("Rate of Change Outlier Analysis")
+            st.write("The following plots show the average daily flow data for the 15 days before and after each outlier identified in flow rate of change.")
             for index, row in top_outliers.iterrows():
-                date = row['date']
-                st.write(f"### Outlier Identified on {date}")
+                date_current = row['date']
+                st.write(f"### Outlier Identified on {date_current}")
                 #get the 5 days before and after the outlier
-                start_date = date - pd.Timedelta(days=60)
-                end_date = date + pd.Timedelta(days=60)
+                start_date = date_current - pd.Timedelta(days=15)
+                end_date = date_current + pd.Timedelta(days=15)
                 outlier_data = flow_derivative_df[(flow_derivative_df['date'] >= start_date) & (flow_derivative_df['date'] <= end_date)]
-                with st.expander(f"{date} +/- 60 Days: Average Daily Flow Data"):
+                with st.expander(f"{date_current} +/- 15 Days: Average Daily Flow Data"):
                     st.line_chart(outlier_data.set_index('date')['avg_flow'],x_label="Date", y_label="Average Daily Flow (cfs)", use_container_width=True)
-                    st.line_chart(outlier_data.set_index('date')['flow_derivative'],x_label="Date", y_label="Flow Derivative", use_container_width=True)
-                    year = date.year
-                    st.write(f"### Insights for Outlier on {date}")
+                    st.line_chart(outlier_data.set_index('date')['flow_derivative'],x_label="Date", y_label="Daily Rate of Change", use_container_width=True)
+                    #day = date.datetime.day
+                    st.write(f"### Insights for Outlier on {date_current}")
                     
-                    before_outlier = flow_derivative_df[(flow_derivative_df['datetime'].dt.year >= year - 5) & (flow_derivative_df['datetime'].dt.year < year)]
-                    after_outlier = flow_derivative_df[(flow_derivative_df['datetime'].dt.year > year) & (flow_derivative_df['datetime'].dt.year <= year + 5)]
+                    before_outlier = flow_derivative_df[(flow_derivative_df['datetime'].dt.date >= start_date) & (flow_derivative_df['datetime'].dt.date < date_current)]
+                    after_outlier = flow_derivative_df[(flow_derivative_df['datetime'].dt.date > date_current) & (flow_derivative_df['datetime'].dt.date <= end_date)]
                     avg_before = before_outlier['flow_derivative'].mean()
                     avg_after = after_outlier['flow_derivative'].mean()
-                    st.write(f"- Average Flow Derivative 5 Years Before Outlier: {avg_before:.2f}")
-                    st.write(f"- Average Flow Derivative 5 Years After Outlier: {avg_after:.2f}")
+                    st.write(f"- Average Rate of Change 15 Days Before Outlier: {avg_before:.2f}")
+                    st.write(f"- Average Rate of Change 15 Days After Outlier: {avg_after:.2f}")
                     try:
                         if avg_after > avg_before:
-                            st.write("- Observation: The average flow derivative increased after the outlier event, indicating a potential shift in flow dynamics.")
+                            st.write("- Observation: The average flow rate of change increased after the outlier event, indicating a potential shift in flow dynamics.")
                         else:
-                            st.write("- Observation: The average flow derivative decreased after the outlier event, suggesting a return to previous flow patterns.")
+                            st.write("- Observation: The average flow rate of change decreased after the outlier event, suggesting a return to previous flow patterns.")
                     except:
-                        st.write("- Not enough data available to calculate 5 years before and after the outlier.")
+                        st.write("- Not enough data available to calculate 15 Days before and after the outlier.")
                     #plot the before_outlier and after_outlier data
-                    st.subheader("Flow Derivative Analysis Before and After Outlier")
+                    st.subheader("Rate of Change Analysis Before and After Outlier")
                     
-                    st.write("#### Average Daily Flow Data 5 Years Before Outlier")
+                    st.write("#### Average Daily Flow Data 15 Days Before Outlier")
                     st.line_chart(before_outlier.set_index('date')['avg_flow'],x_label="Date", y_label="Average Daily Flow (cfs)", use_container_width=True)
-                    st.write("#### Flow Derivatives 5 Years Before Outlier")
-                    st.line_chart(before_outlier.set_index('date')['flow_derivative'],x_label="Date", y_label="Flow Derivative", use_container_width=True)
-                    st.write("#### Average Daily Flow Data 5 Years After Outlier")
+                    #st.write("#### Flow Derivatives 15 Days Before Outlier")
+                    #st.line_chart(before_outlier.set_index('date')['flow_derivative'],x_label="Date", y_label="Daily Rate of Change", use_container_width=True)
+                    st.write("#### Average Daily Flow Data 15 Days After Outlier")
                     st.line_chart(after_outlier.set_index('date')['avg_flow'],x_label="Date", y_label="Average Daily Flow (cfs)", use_container_width=True)
-                    st.write("#### Flow Derivatives 5 Years After Outlier")
-                    st.line_chart(after_outlier.set_index('date')['flow_derivative'],x_label="Date", y_label="Flow Derivative", use_container_width=True)
+                    #st.write("#### Flow Derivatives 15 Days After Outlier")
+                    #st.line_chart(after_outlier.set_index('date')['flow_derivative'],x_label="Date", y_label="Daily Rate of Change", use_container_width=True)
 
             
                 

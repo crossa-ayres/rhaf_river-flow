@@ -1,6 +1,7 @@
 import pandas as pd
 
-from utils.common_utils.utils import download_usgs_data, load_flow_data,  clean_temp_files, create_location_plot
+from utils.common_utils.utils import load_flow_data,  clean_temp_files, create_location_plot
+from utils.common_utils.data_processing import download_usgs_data
 
 
 
