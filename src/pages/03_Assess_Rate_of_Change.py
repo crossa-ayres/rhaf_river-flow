@@ -49,8 +49,8 @@ if st.sidebar.button("Analyze Rate of Change of Flow Data"):
     st.write(f"Analyzing base flow data for USGS Station ID: {usgs_station_id}, analysis starting in {begin_year}")
     
     flow_derivative_df = rate_change_main(usgs_station_id, begin_year)
-    flow_derivative_df['datetime'] = flow_derivative_df['date']
-    flow_derivative_df['date'] = pd.to_datetime(flow_derivative_df['date']).dt.date
+    #flow_derivative_df['datetime'] = flow_derivative_df['date']
+    flow_derivative_df['date'] = pd.to_datetime(flow_derivative_df['date'], errors='coerce')
     #subset flow_derivative_df to only include dates between august 1 and november 1
     flow_derivative_df = flow_derivative_df[(flow_derivative_df['date'].dt.month >= 8) & (flow_derivative_df['date'].dt.month <= 11)]
 
