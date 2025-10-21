@@ -64,7 +64,8 @@ if st.sidebar.button("Analyze Peak Flow Data"):
 
     if df is not None:
         st.write("### Average Daily Flow Data")
-        st.write(df)
+        with st.expander("View Average Daily Flow Data"):
+            st.write(df)
        
         #find the last year data was collected
         last_year = str(df['date'].max())
@@ -121,7 +122,8 @@ if st.sidebar.button("Analyze Peak Flow Data"):
 
         water_year_df['day_month'] = water_year_df['date'].dt.strftime('%m-%d')
         water_year_df = water_year_df.sort_values(by=['day_of_waterYear', 'date'])
-        st.write(water_year_df)
+        with st.expander("View Water Year Average Daily Flow Data"):
+            st.write(water_year_df)
         water_year_dict = return_waterYr_dict()
         #group the water year data by water year
         plt.figure(figsize=(12, 6))
