@@ -5,7 +5,7 @@ st.set_page_config(layout='wide')
 from utils.rate_change.rateChange_utils import rate_change_main
 
 image = Image.open('./src/Images/roc.jpg')
-st.image(image, use_container_width=True)
+st.image(image, width='stretch')
  
 st.title("Rate of Change Data Analysis")
 st.subheader("This application allows the user to evaluate river health on the basis of flow rate of change. Flow data used for this analysis can either be downloaded from the USGS website or manually uploaded as a txt file.")

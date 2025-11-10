@@ -11,7 +11,7 @@ from utils.common_utils.utils import subset_by_season, plot_seasonal_data, manua
 
 st.set_page_config(layout='wide')
 image = Image.open('./src/Images/peakflow.jpg')
-st.image(image, use_container_width=True)
+st.image(image, width='stretch')
 st.title("Peak Flow Data Analysis")
 st.subheader("This application allows the user to evaluate river health on the basis of flow magnitude. Flow data used for this analysis can either be downloaded from the USGS website or manually uploaded as a txt file.")
 

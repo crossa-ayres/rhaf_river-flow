@@ -3,7 +3,7 @@ from PIL import Image
 st.set_page_config(layout='wide')
 
 image = Image.open('./src/Images/river.jpg')
-st.image(image, use_container_width=True)
+st.image(image, width='stretch')
 
 st.title("Welcome to the River Health Asessment Framework (RHAF) Assessment Application")
 st.subheader("This application is designed to assist in the assessment of river health by providing tools for analyzing and visualizing daily flow data. This application" \

@@ -8,7 +8,7 @@ from utils.common_utils.utils import subset_by_season, plot_seasonal_data, water
 
 
 image = Image.open('./src/Images/baseflow.png')
-st.image(image, use_container_width=True)
+st.image(image, width='stretch')
 
 st.title("Base Flow Data Analysis")
 st.subheader("This application allows the user to analyze base flow data using average daily flow. Flow data can either be downloaded from the USGS website or manually uploaded as a txt file.")
