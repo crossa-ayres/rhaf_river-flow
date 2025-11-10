@@ -1,65 +1,27 @@
-import pandas as pd
+
 import os
-import requests
+import pandas as pd
 import matplotlib.pyplot as plt
-
-
 import streamlit as st
 import folium
 from streamlit_folium import folium_static
+from utils.common_utils.data_processing import download_usgs_data, extract_site_info, download_site_coords
 
 
-def download_usgs_data(site_id, begin_year):
-    """
-    Downloads the peak flow data from the given URL and returns the file path.
+
+
+
+def water_year_flows(df):
+    if df is not None:
+        
+        df['water_year'] = df['date'].apply(lambda x: x.year + 1 if x.month >= 10 else x.year)
+        df['day_of_waterYear'] = df['date'].apply(lambda x: (x - pd.Timestamp(year=x.year if x.month >= 10 else x.year - 1, month=10, day=1)).days + 1)
+        return df
+    else:
+        return pd.DataFrame(columns=['date', 'avg_flow'])
     
-    Args:
-        url (str): The URL to download the peak flow data from.
-        
-    Returns:
-        str: The path to the downloaded file.
-    """
-    try:
-        yesterday = pd.Timestamp.now() - pd.Timedelta(days=1)
-        yesterday_str = yesterday.strftime('%Y-%m-%d')
-
-        
-        url = f"https://waterdata.usgs.gov/nwis/dv?cb_00060=on&format=rdb&site_no={site_id}&legacy=&referred_module=sw&period=&begin_date={begin_year}-01-01&end_date={yesterday_str}"
-
-        if not os.path.exists("data/temp"):
-            os.makedirs("data/temp")
-        file_path = requests.get(url)
-        
-        #save the file to the temp directory
-        with open(os.path.join("data/temp","flow_data.txt"), 'wb') as f:
-            f.write(file_path.content)
-        
-
-        file_path = os.path.join("data/temp","flow_data.txt")
-        
-        info_path = download_site_coords(site_id)
-        
-        return file_path, info_path
-    except Exception as e:
-        st.error(f"Error downloading peak flow data: {e}")
-       
-        return None
-def download_site_coords(site_id):
-    """
-    Downloads the site coordinates from the USGS website.
-    
-    Args:
-        site_id (str): The USGS site ID.
-        
-    Returns:
-        dict: A dictionary containing the site coordinates.
-    """
-    information_url = f"https://waterdata.usgs.gov/nwis/inventory/?site_no={site_id}&agency_cd=USGS"
-    info_path = requests.get(information_url)
-    with open(os.path.join("data/temp","info_data.txt"), 'wb') as f:
-        f.write(info_path.content)
-    info_path = os.path.join("data/temp","info_data.txt")
-    return info_path
+def return_waterYr_dict():
+    return {1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December'}
     
 def manual_upload_daily_flow_data(uploaded_file):
     """
@@ -91,7 +53,7 @@ def manual_upload_daily_flow_data(uploaded_file):
         
         
         df = load_flow_data(uploaded_file)
-        st.write(df)
+        
         info_path = download_site_coords(usgs_station_id)
         
         return df,info_path, usgs_station_id
@@ -155,42 +117,7 @@ def clean_temp_files(file_path, info_path):
     except Exception as e:
         st.error(f"Error cleaning up temporary files: {e}")
 
-def extract_site_info(info_path):
-    """
-    Extracts site information from the info file.
-    
-    Args:
-        info_path (str): The path to the info file.
-        
-    Returns:
-        dict: A dictionary containing site information.
-    """
-    #try:
-    with open(info_path, 'r') as f:
-        lines = f.readlines()
-    site_info = {}
-    for line in lines:
-        #find lines that contain latitude and longitude
-        if "latitude" in line.lower() or "longitude" in line.lower():
-            parts = line.strip().split(' ')
-            for part in parts:
-                if part == "" or part == " ":
-                    parts.remove(part)
-            
-            
-            latitude = parts[1]
-            latitude = latitude.replace(',', ' ').replace('&#176', ' ').replace(';', ' ').replace("'", ' ').replace('"', ' ')
-            
-            latitude = latitude.split(" ")
-            
-            decimal_lat = float(latitude[0]) + (float(latitude[2]) / 60) + (float(latitude[3])/ 3600)
-            longitude = parts[4]
-            longitude = longitude.replace(',', ' ').replace('&#176', ' ').replace(';', ' ').replace("'", ' ').replace('"', ' ')
-            longitude = longitude.split(" ")
-            
-            decimal_long = float(longitude[0]) + (float(longitude[2]) / 60) + (float(longitude[3])/ 3600)
-            location_df = pd.DataFrame({'latitude': [decimal_lat], 'longitude': [decimal_long*-1]})
-            return location_df
+
             
                 
 def create_location_plot(info_path, site_id):
@@ -250,7 +177,7 @@ def subset_by_season(df):
 def plot_seasonal_data(season_df, usgs_station_id, season):
     plt.style.use(['ggplot'])
     styles = ['-4', ':', '-+', '-o', '-', '--', '-p', '-P', '-x', '-*','-.', '-v', '-^', '-<', '->', '-1', '-8', '-s', '-H', '-X']
-    fig, ax = plt.subplots(figsize=(10,4), )
+    fig, ax = plt.subplots(figsize=(10,4) )
     season_df.set_index('year').T.plot(ax=ax, style=styles,linewidth=1,markersize=5, title=f'{season} Average Daily Flow: Gage {usgs_station_id}', legend=True)
     plt.xlabel('Day', fontsize=8)
     ax.set_facecolor("#999997")  # Set the background color of the plot area
@@ -260,8 +187,21 @@ def plot_seasonal_data(season_df, usgs_station_id, season):
     plt.ylabel('Average Daily Flow (cfs)', fontsize=8)
     plt.legend(ncol=3, title = "Year")
     
-    #add grid lines to the plot
-    #ax.grid(which='major', linestyle='-', linewidth=0.35, color='black', alpha = 0.7)  # Major gridlines
-    #ax.grid(which='minor', linestyle=':', linewidth=0.25, color='gray', alpha = 0.7)  # Minor gridlines
+    return fig
+
+def plot_waterYear_data(water_year_df, usgs_station_id):
+    plt.style.use(['ggplot'])
+    styles = ['-4', ':', '-+', '-o', '-', '--', '-p', '-P', '-x', '-*','-.', '-v', '-^', '-<', '->', '-1', '-8', '-s', '-H', '-X']
+    fig, ax = plt.subplots(figsize=(10,4) )
+   
+    yearly_data = water_year_df[['water_year', 'avg_flow']]
+    yearly_data.set_index('water_year').T.plot(ax=ax, style=styles,linewidth=1,markersize=5)
+    plt.xlabel('Day', fontsize=8)
+    ax.set_facecolor("#999997")  # Set the background color of the plot area
+    plt.minorticks_on()
+    plt.title(f'Average Daily Flow Across Water Years: Gage {usgs_station_id}', fontsize=10)
+
+    plt.ylabel('Average Daily Flow (cfs)', fontsize=8)
+    
     return fig
 
