@@ -9,15 +9,19 @@ from utils.common_utils.utils import subset_by_season, plot_seasonal_data, water
 
 image = Image.open('./src/Images/baseflow.png')
 st.image(image, width='stretch')
+logo = Image.open('./src/Images/logo.png')
+st.sidebar.image(logo)
+st.sidebar.divider()
+st.divider()
 
 st.title("Base Flow Data Analysis")
 st.subheader("This application allows the user to analyze base flow data using average daily flow. Flow data can either be downloaded from the USGS website or manually uploaded as a txt file.")
 st.markdown("##### The application requires the following inputs:")
 st.markdown("- **USGS Station ID**")
 st.markdown("- **Begin Analysis On (year)**: The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
-
+st.divider()
 #st.markdown("- Average Daily Flow Threshold (cfs)")
-st.sidebar.header("Input Parameters")
+st.sidebar.title("Input Parameters")
 #add checkbox to determine if the user wants to manually upload data or allow the tool to download it from the USGS website
 
 
@@ -29,8 +33,8 @@ if st.sidebar.checkbox("**Download data from USGS website**", value=False, key="
     trout_threshold = min_threshold 
     #pf_threshold = st.sidebar.number_input("Mean Daily Flow Threshold (cfs)", min_value=0, value=500)
 
-elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):
-    uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data txt file", type=["txt"])
+#elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):
+#    uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data txt file", type=["txt"])
 
 st.sidebar.markdown("### Note:")
 st.sidebar.markdown("The application will download mean daily flow data from the USGS website and analyze it based on the specified parameters.")
@@ -52,6 +56,7 @@ if st.sidebar.button("Analyze Base Flow Data"):
 
     st.write(f"Analyzing base flow data for USGS Station ID: {usgs_station_id}, analysis starting in {begin_year}")
     df, trout_analysis, min_analysis = bfm(usgs_station_id,begin_year,trout_threshold, min_threshold)
+    st.divider()
     st.write("### Average Daily Flow Data")
     with st.expander("Average Daily Flow Data - Raw Data"):
         st.write(df)
@@ -76,7 +81,7 @@ if st.sidebar.button("Analyze Base Flow Data"):
         st.subheader(f"Average daily flow data for gage {usgs_station_id}")
 
         st.line_chart(df.set_index('date')['avg_flow'], use_container_width=True, height = 1200, x_label='Date', y_label='Average Daily Flow (cfs)')
-
+        st.divider()
         
         #generate a boxplot showing average monthly flow data for all years with labels above the bar showing the month
         st.subheader("Average Monthly Flow Data")
@@ -124,10 +129,10 @@ if st.sidebar.button("Analyze Base Flow Data"):
         #minimum flow in winter months across all years
         
         min_winter_flow = winter_waterYear_df.groupby('water_year')['avg_flow'].min().reset_index()
-        
+        st.divider()
         
         #combine the two dataframes annual_winter_flow and min_winter_flow into one dataframe and plot as a stacked bar chart using altair
-        st.title("Comparison of Average and Minimum Winter Monthly Flow Data by Year")
+        st.title("Comparison of Average (grey) and Minimum (blue) Winter Monthly Flow Data by Year")
 
         combined_winter_flow = pd.merge(annual_winter_flow, min_winter_flow, on='water_year', suffixes=('_avg', '_min'))
         #add a column to combined winter flow that is the water year + min as a string
@@ -195,13 +200,17 @@ if st.sidebar.button("Analyze Base Flow Data"):
         st.altair_chart(line, use_container_width=True)
 
         #average minimum flow in winter across all years
-        
+        st.divider()
+        st.header("Winter Monthly Flow Analysis Summary")
         st.subheader(f"The average flow during winter months across all years is {average_winter_flow:.0f} cfs - shown as the black line on the chart above.")
+        
         st.subheader(f"The average minimum flow during winter months across all years is {average_min_winter_flow:.0f} cfs - shown as the blue line on the chart above.")
+        st.divider()
         if min_analysis_df.empty:
             st.header(f"No flow events exist below the minimum flow threshold of {min_threshold} cfs, skipping analysis.")
         else:
             min_analysis_df.columns = ['year', 'Total Days Below Min Threshold', 'Years After Previous', 'Average Flow Below Min Threshold', 'Max Flow Below Min Threshold', 'Min Flow Below Min Threshold']
+            
             st.title(f"Threshold Analysis of Gage Data - Minimum Flow Threshold ({min_threshold} cfs)")
             #drop na values from df
             try:
@@ -217,7 +226,7 @@ if st.sidebar.button("Analyze Base Flow Data"):
                 summer_below_threshold = (summer_df[summer_df['avg_flow'] < min_threshold].shape[0] / summer_df.shape[0]) * 100
                 fall_below_threshold = (fall_df[fall_df['avg_flow'] < min_threshold].shape[0] / fall_df.shape[0]) * 100
             
-                st.markdown(f'<h2 style="color:black;">Seasonal Analysis of Flow Below Minimum Threshold ({min_threshold} cfs)</h2>', unsafe_allow_html=True)
+                #st.markdown(f'<h2 style="color:black;">Seasonal Analysis of Flow Below Minimum Threshold ({min_threshold} cfs)</h2>', unsafe_allow_html=True)
                 st.write(f"##### Percentage of Days Below {min_threshold} cfs by Season:")
                 if winter_below_threshold > 10:
                     st.markdown(f'<h3 style="color:red;">Winter: {winter_below_threshold:.2f}%</h3>', unsafe_allow_html=True)
@@ -228,8 +237,8 @@ if st.sidebar.button("Analyze Base Flow Data"):
                 st.write(f"Spring: {spring_below_threshold:.2f}%")
                 st.write(f"Summer: {summer_below_threshold:.2f}%")
                 st.write(f"Fall: {fall_below_threshold:.2f}%")
-
-                st.subheader("Yearly Summary Data:")
+                st.divider()
+                st.header("Yearly Summary Data")
                 st.write(f"##### Summary of Average Daily Flow Data Below {min_threshold} cfs by Year:")
 
                 summary_df = generate_summary_df(min_analysis, min_threshold)

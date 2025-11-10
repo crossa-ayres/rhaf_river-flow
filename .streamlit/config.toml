@@ -1,6 +1,6 @@
 [theme]
 primaryColor="#f8f8ff"
-backgroundColor="#f8f8ff"
+backgroundColor="#e0e1dd"
 secondaryBackgroundColor="#dcdcdc"
 textColor="#000000"
 baseFontSize=16
@@ -10,6 +10,6 @@ font = 'sans-serif'
 
 [theme.sidebar]
 
-primaryColor="#000000"
-backgroundColor="#dcdcdc"
-textColor="#000000"
+primaryColor="#e0e1dd"
+backgroundColor="#4d4f53"
+textColor="#e98300"
