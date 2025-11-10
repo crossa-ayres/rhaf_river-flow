@@ -7,7 +7,7 @@ from utils.base_flow.baseFlow_utils import baseFlow_main as bfm,generate_summary
 from utils.common_utils.utils import subset_by_season, plot_seasonal_data, water_year_flows, return_waterYr_dict
 
 
-image = Image.open('./src/Images/baseflow.jpg')
+image = Image.open('./src/Images/baseflow.svg')
 st.image(image, use_container_width=True)
 
 st.title("Base Flow Data Analysis")
