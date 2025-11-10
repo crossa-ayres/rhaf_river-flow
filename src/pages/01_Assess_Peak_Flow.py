@@ -72,7 +72,7 @@ if st.sidebar.button("Analyze Peak Flow Data"):
         last_year = last_year.split(" ")[0]
         st.write(f"### Gage ID {usgs_station_id} contains data up until {last_year}")
         st.subheader(f"Plotted average daily flow values for gage {usgs_station_id}")
-        st.line_chart(df.set_index('date')['avg_flow'], use_container_width=True)
+        st.line_chart(df.set_index('date')['avg_flow'], use_container_width=True, height=800, x_label="Year", y_label="Average Daily Flow (cfs)")
         #set the year column to a datetime object
         
 

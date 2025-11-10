@@ -75,7 +75,7 @@ if st.sidebar.button("Analyze Base Flow Data"):
         st.write(f"### Gage ID {usgs_station_id} contains data up until {last_year}")
         st.subheader(f"Average daily flow data for gage {usgs_station_id}")
 
-        st.line_chart(df.set_index('date')['avg_flow'], use_container_width=True, height = 800)
+        st.line_chart(df.set_index('date')['avg_flow'], use_container_width=True, height = 1200, x_label='Date', y_label='Average Daily Flow (cfs)')
 
         
         #generate a boxplot showing average monthly flow data for all years with labels above the bar showing the month
