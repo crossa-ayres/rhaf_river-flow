@@ -9,7 +9,7 @@ from utils.common_utils.utils import subset_by_season, plot_seasonal_data, manua
 
 
 
-st.set_page_config(layout='wide')
+st.set_page_config(layout='centered')
 image = Image.open('./src/Images/river.png')
 st.image(image, width='content')
 st.title("Peak Flow Data Analysis")
