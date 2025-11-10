@@ -2,7 +2,7 @@ import streamlit as st
 from PIL import Image
 st.set_page_config(layout='wide')
 
-image = Image.open('./src/Images/river.jpg')
+image = Image.open('./src/Images/river.png')
 st.image(image, width='stretch')
 
 st.title("Welcome to the River Health Asessment Framework (RHAF) Assessment Application")

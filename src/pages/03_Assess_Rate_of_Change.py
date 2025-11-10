@@ -4,7 +4,7 @@ from PIL import Image
 st.set_page_config(layout='wide')
 from utils.rate_change.rateChange_utils import rate_change_main
 
-image = Image.open('./src/Images/roc.jpg')
+image = Image.open('./src/Images/roc.png')
 st.image(image, width='stretch')
  
 st.title("Rate of Change Data Analysis")
