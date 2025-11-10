@@ -19,6 +19,7 @@ st.subheader("This application allows the user to analyze base flow data using a
 st.markdown("##### The application requires the following inputs:")
 st.markdown("- **USGS Station ID**")
 st.markdown("- **Begin Analysis On (year)**: The year from which to start the analysis. If the Download Data option is selected, the application will download data from the USGS website starting from this year.")
+st.markdown("- **Minimum Flow Threshold**: User specified minimum flow threshold to determine number of days below threshold.")
 st.divider()
 #st.markdown("- Average Daily Flow Threshold (cfs)")
 st.sidebar.title("Input Parameters")
