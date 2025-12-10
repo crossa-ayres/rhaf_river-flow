@@ -5,7 +5,7 @@ st.set_page_config(layout='wide')
 from utils.rate_change.rateChange_utils import rate_change_main
 
 image = Image.open('./src/Images/roc.png')
-st.image(image, width='stretch')
+st.image(image, use_container_width=True)
 logo = Image.open('./src/Images/logo.png')
 st.sidebar.image(logo)
 st.sidebar.divider()
@@ -25,8 +25,8 @@ st.sidebar.title("Input Parameters")
 #add checkbox to determine if the user wants to manually upload data or allow the tool to download it from the USGS website
 
 if st.sidebar.checkbox("**Download data from USGS website**", value=False, key="download_data"):
-    usgs_station_id = st.sidebar.text_input("USGS Station ID")
-    begin_year = st.sidebar.text_input("Begin Analysis On (year)")
+    usgs_station_id = st.sidebar.text_input("USGS Station ID", value="06752260")
+    begin_year = st.sidebar.text_input("Begin Analysis On (year)", value="2020")
     number_outliers = st.sidebar.number_input("Number of Outliers to Display", min_value=1, value=3)
 
 #elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):

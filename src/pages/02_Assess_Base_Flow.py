@@ -8,7 +8,7 @@ from utils.common_utils.utils import subset_by_season, plot_seasonal_data, water
 
 
 image = Image.open('./src/Images/baseflow.png')
-st.image(image, width='stretch')
+st.image(image, use_container_width=True)
 logo = Image.open('./src/Images/logo.png')
 st.sidebar.image(logo)
 st.sidebar.divider()
@@ -27,8 +27,8 @@ st.sidebar.title("Input Parameters")
 
 
 if st.sidebar.checkbox("**Download data from USGS website**", value=False, key="download_data"):
-    usgs_station_id = st.sidebar.text_input("USGS Station ID")
-    begin_year = st.sidebar.text_input("Begin Analysis On (year)")
+    usgs_station_id = st.sidebar.text_input("USGS Station ID", value="06752280")
+    begin_year = st.sidebar.text_input("Begin Analysis On (year)", value="2020")
     
     min_threshold = st.sidebar.number_input("Minimum Flow Threshold (cfs)", min_value=0, value=10)
     trout_threshold = min_threshold 

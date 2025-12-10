@@ -35,7 +35,14 @@ def manual_upload_daily_flow_data(uploaded_file):
     """
     try:
         
-        data = pd.read_csv(uploaded_file, delimiter='\t', on_bad_lines='skip', header = None)
+        data = pd.read_csv(uploaded_file,  on_bad_lines='skip', header = 0)
+        date_column = st.info("Please select the column that contains the date information.")
+        date_col = st.selectbox("Select Date Column", options=data.columns, placeholder=None)   
+        flow_column = st.info("Please select the column that contains the average flow information.")
+        flow_col = st.selectbox("Select Average Flow Column", options=data.columns, placeholder=None)
+        if date_col and flow_col:
+            st.write(date_col, flow_col)
+        """
         
         data.columns = ['temp']
         #define the temp column as a string
@@ -57,6 +64,7 @@ def manual_upload_daily_flow_data(uploaded_file):
         info_path = download_site_coords(usgs_station_id)
         
         return df,info_path, usgs_station_id
+        """
     except Exception as e:
         st.error(f"Error loading peak flow data: {e}")
        

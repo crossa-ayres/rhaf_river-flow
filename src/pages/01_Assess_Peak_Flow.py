@@ -14,7 +14,7 @@ st.set_page_config(layout='wide')
 #with cent_co:
 
 image = Image.open('./src/Images/river.png')
-st.image(image, width='stretch')
+st.image(image,use_container_width=True)
 logo = Image.open('./src/Images/logo.png')
 st.sidebar.image(logo)
 st.sidebar.divider()
@@ -31,16 +31,16 @@ st.sidebar.title("Input Parameters")
 
 
 if st.sidebar.checkbox("**Download data from USGS website**", value=False, key="download_data"):
-    usgs_station_id = st.sidebar.text_input("**USGS Station ID**")
-    begin_year = st.sidebar.text_input("**Begin Analysis On (year)**")
+    usgs_station_id = st.sidebar.text_input("**USGS Station ID**", value="06721000")
+    begin_year = st.sidebar.text_input("**Begin Analysis On (year)**", value="2020")
     end_year = "2025"
     #pf_threshold = st.sidebar.number_input("**Mean Daily Flow Threshold (cfs)**", min_value=0, value=500)
     pf_threshold = 0
     upload_type = "downloaded"
 
 #elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):
-#    uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data txt file", type=["txt"])
-#    begin_year = st.sidebar.text_input("**Begin Analysis On (year)**")
+#    uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data csv file", type=["csv"])
+   #begin_year = st.sidebar.text_input("**Begin Analysis On (year)**")
     #pf_threshold = st.sidebar.number_input("**Mean Daily Flow Threshold (cfs)**", min_value=0, value=500)
 #    pf_threshold = 0
 #    upload_type = "uploaded"
@@ -65,6 +65,7 @@ if st.sidebar.button("Analyze Peak Flow Data"):
 
     #st.write(f"Analyzing peak flow data for USGS Station ID: {usgs_station_id}, starting in {begin_year}, Mean Daily Flow Threshold: {pf_threshold} cfs")
     if upload_type == "uploaded":
+        #df = manual_upload_daily_flow_data(uploaded_file)
         df, above_thresh_df,yearly_analysis,usgs_station_id = pfm(usgs_station_id="000000", begin_year=begin_year,end_year = end_year, pf_threshold=pf_threshold,upload_type=upload_type,uploaded_file=uploaded_file)
     else:
         df, above_thresh_df, yearly_analysis,_,annual_peaks,months_dict,water_year_df = pfm(usgs_station_id=usgs_station_id, begin_year=begin_year, pf_threshold=pf_threshold,upload_type=upload_type)
