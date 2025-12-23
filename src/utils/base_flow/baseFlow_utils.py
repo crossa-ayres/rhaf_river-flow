@@ -1,6 +1,6 @@
 import pandas as pd
 
-from utils.common_utils.utils import load_flow_data,  clean_temp_files, create_location_plot
+from utils.common_utils.utils import load_flow_data,  clean_temp_files, create_location_plot, manual_upload_daily_flow_data
 from utils.common_utils.data_processing import download_usgs_data
 
 
@@ -55,16 +55,16 @@ def yearly_threshold_analysis(thresh_df):
     return thresh_analysis
 
 
-def baseFlow_main(site_id, begin_year,trout_threshold, min_threshold):
+def baseFlow_main(usgs_station_id,begin_year,trout_threshold, min_threshold, data, date_col, flow_col, upload_type):
     """
     Main function to download and load base flow data.
     
     Args:
         url (str): The URL to download the peak flow data from.
     """
-    file_path, info_path = download_usgs_data(site_id, begin_year)
-    if file_path:
-        create_location_plot(info_path, site_id)
+    file_path, info_path = download_usgs_data(usgs_station_id, begin_year)
+    if file_path and upload_type == "downloaded":
+        create_location_plot(info_path, usgs_station_id)
         df = load_flow_data(file_path)
         
         below_trout_threshold_df,below_min_threshold_df = subset_flow_below_threshold(df, trout_threshold, min_threshold)
@@ -74,6 +74,15 @@ def baseFlow_main(site_id, begin_year,trout_threshold, min_threshold):
         min_analysis = yearly_threshold_analysis(below_min_threshold_df)
         clean_temp_files(file_path, info_path)
 
+        return df, trout_analysis, min_analysis
+    elif upload_type == "uploaded":
+        df = manual_upload_daily_flow_data(data, date_col, flow_col)
+        
+        below_trout_threshold_df,below_min_threshold_df = subset_flow_below_threshold(df, trout_threshold, min_threshold)
+        
+        trout_analysis = yearly_threshold_analysis(below_trout_threshold_df)
+        
+        min_analysis = yearly_threshold_analysis(below_min_threshold_df)
         return df, trout_analysis, min_analysis
         
     else:

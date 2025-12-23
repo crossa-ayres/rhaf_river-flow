@@ -2,7 +2,7 @@
 import pandas as pd
 import streamlit as st
 
-from utils.common_utils.utils import download_usgs_data, load_flow_data, clean_temp_files, create_location_plot
+from utils.common_utils.utils import download_usgs_data, load_flow_data, clean_temp_files, create_location_plot, manual_upload_daily_flow_data
 
 
 
@@ -50,7 +50,7 @@ def identify_derivative_outliers(df):
         st.error("DataFrame does not contain 'flow_derivative' column.")
         return pd.DataFrame(columns=['date', 'avg_flow', 'flow_derivative', 'is_outlier'])
 
-def rate_change_main(usgs_station_id, begin_year):
+def rate_change_main(usgs_station_id, begin_year,data,date_col, flow_col, upload_type):
     """
     Main function to download and load rate change data.
     
@@ -63,13 +63,18 @@ def rate_change_main(usgs_station_id, begin_year):
     """
     file_path, info_path = download_usgs_data(usgs_station_id, begin_year)
 
-    if file_path:
+    if file_path and upload_type == "downloaded":
         create_location_plot(info_path, usgs_station_id)
         
         df = load_flow_data(file_path)
         df = calculate_flow_dirivatives(df)
         df = identify_derivative_outliers(df)
         clean_temp_files(file_path, info_path)
+        return df
+    elif upload_type == "uploaded":
+        df = manual_upload_daily_flow_data(data, date_col, flow_col)
+        df = calculate_flow_dirivatives(df)
+        df = identify_derivative_outliers(df)
         return df
     else:
         return pd.DataFrame(columns=['date', 'avg_flow', 'flow_derivative'])  # Return empty DataFrame if download fails

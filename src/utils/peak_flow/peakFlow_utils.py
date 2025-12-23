@@ -2,7 +2,7 @@
 import pandas as pd
 import streamlit as st
 
-from utils.common_utils.utils import load_flow_data, clean_temp_files,create_location_plot,manual_upload_daily_flow_data, water_year_flows, return_waterYr_dict
+from utils.common_utils.utils import load_flow_data, clean_temp_files,create_location_plot,manual_upload_daily_flow_data, water_year_flows, return_waterYr_dict, clean_manual_date_column
 from utils.common_utils.data_processing import download_usgs_data
 
 
@@ -73,21 +73,18 @@ def generate_summary_df(yearly_analysis, pf_threshold):
     summary_df = pd.DataFrame.from_dict(summary_dict, orient='index')
     return summary_df
     
-def peakFlow_main(usgs_station_id = None, begin_year="2015",end_year = "2025", pf_threshold = 200,upload_type= "downloaded",uploaded_file=None):
+def peakFlow_main(date_col, flow_col,usgs_station_id = None, begin_year="2015",end_year = "2025", pf_threshold = 200,upload_type= "downloaded",uploaded_file=None, data = None):
     """
     Main function to download and load peak flow data.
     
     Args:
         url (str): The URL to download the peak flow data from.
     """
+    info_path = None
     if upload_type == "downloaded":
         st.write("Downloading data from USGS...")
         file_path, info_path = download_usgs_data(usgs_station_id, begin_year)
         df = load_flow_data(file_path)
-    elif upload_type == "uploaded":
-        df,info_path, usgs_station_id = manual_upload_daily_flow_data(uploaded_file)
-        
-    if info_path:
         create_location_plot(info_path, usgs_station_id)
         if df is not None:
             above_thresh_df = subset_flow_above_threshold(df, pf_threshold)
@@ -97,11 +94,24 @@ def peakFlow_main(usgs_station_id = None, begin_year="2015",end_year = "2025", p
             
             clean_temp_files(file_path, info_path)
             return df, above_thresh_df, yearly_analysis,usgs_station_id,annual_peaks,months_dict,water_year_df
+    elif upload_type == "uploaded":
+       
+        df= manual_upload_daily_flow_data(data, date_col, flow_col)
+        
+        
+        if df is not None:
+            
+            above_thresh_df = subset_flow_above_threshold(df, pf_threshold)
+            yearly_analysis = yearly_flow_analysis(above_thresh_df)
+            annual_peaks,months_dict = annual_peak_summary(df)
+            water_year_df = water_year_flows(df)
+            
+            #clean_temp_files(file_path)
+            return df, above_thresh_df, yearly_analysis,usgs_station_id,annual_peaks,months_dict,water_year_df
             
         else:
             st.write("No data available for the specified parameters. Please check the USGS Station ID including any leading zero's.")
             
-    else:
-        st.error("Failed to download peak flow data.")
+   
         
 

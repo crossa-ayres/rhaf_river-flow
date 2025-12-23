@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 import folium
 from streamlit_folium import folium_static
+import re
 from utils.common_utils.data_processing import download_usgs_data, extract_site_info, download_site_coords
 
 
@@ -22,8 +23,45 @@ def water_year_flows(df):
     
 def return_waterYr_dict():
     return {1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December'}
+
+def clean_manual_date_column(df, date_col):
+    """
+    Cleans and converts a date column to datetime format.
     
-def manual_upload_daily_flow_data(uploaded_file):
+    Args:
+        date_series (pd.Series): The date column to clean.
+        
+    Returns:
+        pd.Series: The cleaned date column in datetime format.
+    """
+    
+    #remove any '=' characters from the date column
+    
+    df[f"{date_col}"] = df[f"{date_col}"].astype(str).str.replace('"', '', regex=True)
+    df[f"{date_col}"] = df[f"{date_col}"].astype(str).str.replace('=', '', regex=True)
+    df[f"{date_col}"] = pd.to_datetime(df[f"{date_col}"], errors='coerce')
+
+    # Remove time part, keeping only the date
+    df[f"{date_col}"] = df[f"{date_col}"].dt.date
+    
+    return df
+
+def remove_nan_rows(df, col_name):
+    """
+    Removes rows with NaN values in the specified column.
+    
+    Args:
+        df (pd.DataFrame): The DataFrame to clean.
+        col_name (str): The column name to check for NaN values.
+        
+    Returns:
+        pd.DataFrame: The cleaned DataFrame without NaN rows.
+    """
+    df_cleaned = df.dropna(subset=[col_name])
+    return df_cleaned
+    
+    
+def manual_upload_daily_flow_data(data, date_col, flow_col):
     """
     Loads the peak flow data from an uploaded file into a pandas DataFrame.
     
@@ -35,36 +73,28 @@ def manual_upload_daily_flow_data(uploaded_file):
     """
     try:
         
-        data = pd.read_csv(uploaded_file,  on_bad_lines='skip', header = 0)
-        date_column = st.info("Please select the column that contains the date information.")
-        date_col = st.selectbox("Select Date Column", options=data.columns, placeholder=None)   
-        flow_column = st.info("Please select the column that contains the average flow information.")
-        flow_col = st.selectbox("Select Average Flow Column", options=data.columns, placeholder=None)
-        if date_col and flow_col:
-            st.write(date_col, flow_col)
-        """
-        
-        data.columns = ['temp']
-        #define the temp column as a string
-        data2 = pd.read_csv(uploaded_file, delimiter=' ', on_bad_lines='skip',skiprows=29, header = None)
-        st.write("this is data ",data2)
-        row = data.iloc[13]
-        #convert the row to a string and split it by tab
-        row = str(row[0])
         
         
-        usgs_station_id = row.split(' ')
-        #remove empty strings from the list
-        usgs_station_id = [x for x in usgs_station_id if x]
-        usgs_station_id = usgs_station_id[2]
+        df = data[[date_col, flow_col]]
+        df = clean_manual_date_column(df, date_col)
+        df = remove_nan_rows(df, flow_col)
+        
+
         
         
-        df = load_flow_data(uploaded_file)
+        df.columns = ['date', 'avg_flow']
+        df['date'] = pd.to_datetime(df['date'])
+        df['avg_flow'] = pd.to_numeric(df['avg_flow'], errors='coerce')
+        #add column contining just the year
+        df['year'] = df['date'].dt.year
+        df['month'] = df['date'].dt.month
+        df['day'] = df['date'].dt.day
+        df.loc[(df["month"] > 3) & (df["month"] < 6), "season"] = "Spring"
+        df.loc[(df["month"] > 5) & (df["month"] < 9), "season"] = "Summer"
+        df.loc[(df["month"] > 8) & (df["month"] < 12), "season"] = "Fall"
+        df.loc[(df["month"] < 4) | (df["month"] == 12), "season"] = "Winter"
         
-        info_path = download_site_coords(usgs_station_id)
-        
-        return df,info_path, usgs_station_id
-        """
+        return df
     except Exception as e:
         st.error(f"Error loading peak flow data: {e}")
        

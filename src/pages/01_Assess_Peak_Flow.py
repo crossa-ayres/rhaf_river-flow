@@ -4,14 +4,25 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import altair as alt
+from datetime import datetime
+import plotly.express as px
+
 from utils.peak_flow.peakFlow_utils import peakFlow_main as pfm, generate_summary_df
-from utils.common_utils.utils import subset_by_season, plot_seasonal_data, manual_upload_daily_flow_data,plot_waterYear_data, return_waterYr_dict
+from utils.common_utils.utils import subset_by_season, plot_seasonal_data, manual_upload_daily_flow_data,plot_waterYear_data, return_waterYr_dict, clean_manual_date_column
 
 
+df = None
+upload_type = None
+usgs_station_id = None
+begin_year = None
+pf_threshold = None
+end_year = None
+uploaded_file = None
+date_col = None
+flow_col = None
 
 st.set_page_config(layout='wide')
-#left_co, cent_co,last_co = st.columns(3)
-#with cent_co:
+
 
 image = Image.open('./src/Images/river.png')
 st.image(image,use_container_width=True)
@@ -33,17 +44,16 @@ st.sidebar.title("Input Parameters")
 if st.sidebar.checkbox("**Download data from USGS website**", value=False, key="download_data"):
     usgs_station_id = st.sidebar.text_input("**USGS Station ID**", value="06721000")
     begin_year = st.sidebar.text_input("**Begin Analysis On (year)**", value="2020")
-    end_year = "2025"
-    #pf_threshold = st.sidebar.number_input("**Mean Daily Flow Threshold (cfs)**", min_value=0, value=500)
+    end_year = datetime.now().year
+    
     pf_threshold = 0
     upload_type = "downloaded"
 
-#elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):
-#    uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data csv file", type=["csv"])
-   #begin_year = st.sidebar.text_input("**Begin Analysis On (year)**")
-    #pf_threshold = st.sidebar.number_input("**Mean Daily Flow Threshold (cfs)**", min_value=0, value=500)
-#    pf_threshold = 0
-#    upload_type = "uploaded"
+elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):
+    uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data csv file", type=["csv"])
+    pf_threshold = 0
+    end_year = datetime.now().year
+    upload_type = "uploaded"
 
 st.sidebar.markdown("### Note:")
 st.sidebar.markdown("The application will use the mean daily flow data (either downloaded from the USGS website or uploaded by the user) and analyze it based on the specified parameters.")
@@ -61,15 +71,44 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-if st.sidebar.button("Analyze Peak Flow Data"):
 
-    #st.write(f"Analyzing peak flow data for USGS Station ID: {usgs_station_id}, starting in {begin_year}, Mean Daily Flow Threshold: {pf_threshold} cfs")
-    if upload_type == "uploaded":
-        #df = manual_upload_daily_flow_data(uploaded_file)
-        df, above_thresh_df,yearly_analysis,usgs_station_id = pfm(usgs_station_id="000000", begin_year=begin_year,end_year = end_year, pf_threshold=pf_threshold,upload_type=upload_type,uploaded_file=uploaded_file)
-    else:
-        df, above_thresh_df, yearly_analysis,_,annual_peaks,months_dict,water_year_df = pfm(usgs_station_id=usgs_station_id, begin_year=begin_year, pf_threshold=pf_threshold,upload_type=upload_type)
 
+
+# Initialize the persistent state variable
+if "sidebar_btn_clicked" not in st.session_state:
+    st.session_state.sidebar_btn_clicked = False
+
+# Function to update state when button is clicked
+def click_sidebar_button():
+    st.session_state.sidebar_btn_clicked = True
+
+# Sidebar button with callback
+st.sidebar.button(
+    "Analyze Peak Flow Data",
+    on_click=click_sidebar_button
+)
+
+# Main app logic
+
+
+
+if st.session_state.sidebar_btn_clicked: 
+    
+    if upload_type == "uploaded" and uploaded_file is not None:
+        data = pd.read_csv(uploaded_file,  on_bad_lines='skip', header = 0)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            date_column = st.info("Please select the column that contains the date information.")
+            date_col = st.selectbox("Select Date Column", options=data.columns, placeholder=None)  
+        with col2:
+            flow_column = st.info("Please select the column that contains the average flow information.")
+            flow_col = st.selectbox("Select Average Flow Column", options=data.columns, placeholder=None)
+        if st.button("Submit Columns"):
+            df, above_thresh_df, yearly_analysis,usgs_station_id,annual_peaks,months_dict,water_year_df= pfm(date_col, flow_col, usgs_station_id="Manually Uploaded Data", begin_year=begin_year,end_year = end_year, pf_threshold=pf_threshold,upload_type=upload_type,uploaded_file=uploaded_file,data=data)
+            begin_year = df['date'].dt.year.min()
+    elif upload_type == "downloaded":
+        df, above_thresh_df, yearly_analysis,_,annual_peaks,months_dict,water_year_df = pfm(date_col, flow_col,usgs_station_id=usgs_station_id, begin_year=begin_year, pf_threshold=pf_threshold,upload_type=upload_type, data=None)
     if df is not None:
         st.divider()
         st.write("### Average Daily Flow Data")
@@ -111,7 +150,7 @@ if st.sidebar.button("Analyze Peak Flow Data"):
         x_vals.sort()
         
         
-        histogram = alt.Chart(annual_peaks).mark_bar().encode(
+        histogram = alt.Chart(annual_peaks).mark_boxplot().encode(
         alt.X('month', axis=alt.Axis(values=x_vals)),  # Binning the Acceleration column , bin=True
         y='count()'  # Counting the number of occurrences
         )

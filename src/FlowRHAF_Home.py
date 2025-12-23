@@ -3,7 +3,7 @@ from PIL import Image
 st.set_page_config(layout='wide')
 
 image = Image.open('./src/Images/river.png')
-st.image(image, width='stretch')
+st.image(image, use_container_width=True)
 logo = Image.open('./src/Images/logo.png')
 st.sidebar.image(logo)
 st.sidebar.divider()

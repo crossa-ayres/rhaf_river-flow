@@ -1,8 +1,23 @@
 import streamlit as st
 import pandas as pd
 from PIL import Image
+from datetime import datetime
+
 st.set_page_config(layout='wide')
 from utils.rate_change.rateChange_utils import rate_change_main
+
+
+flow_derivative_df = None
+upload_type = None
+usgs_station_id = None
+begin_year = None
+pf_threshold = None
+end_year = None
+uploaded_file = None
+date_col = None
+flow_col = None
+data = None
+
 
 image = Image.open('./src/Images/roc.png')
 st.image(image, use_container_width=True)
@@ -28,9 +43,12 @@ if st.sidebar.checkbox("**Download data from USGS website**", value=False, key="
     usgs_station_id = st.sidebar.text_input("USGS Station ID", value="06752260")
     begin_year = st.sidebar.text_input("Begin Analysis On (year)", value="2020")
     number_outliers = st.sidebar.number_input("Number of Outliers to Display", min_value=1, value=3)
+    upload_type = "downloaded"
 
-#elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):
-#    uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data txt file", type=["txt"])
+elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):
+    uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data csv file", type=["csv"])
+    number_outliers = st.sidebar.number_input("Number of Outliers to Display", min_value=1, value=3)
+    upload_type = "uploaded"
     
 st.sidebar.markdown("### Note:")
 st.sidebar.markdown("The application will download mean daily flow data from the USGS website and analyze it based on the specified parameters.")
@@ -48,19 +66,59 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-if st.sidebar.button("Analyze Rate of Change of Flow Data"):
 
-    st.write(f"Analyzing base flow data for USGS Station ID: {usgs_station_id}, analysis starting in {begin_year}")
-    st.divider()
-    flow_derivative_df = rate_change_main(usgs_station_id, begin_year)
-    
-    flow_derivative_df['date'] = pd.to_datetime(flow_derivative_df['date'], errors='coerce')
-    flow_derivative_df['datetime'] = flow_derivative_df['date']
-    #subset flow_derivative_df to only include dates between august 1 and november 1
-    
+# Initialize the persistent state variable
+if "sidebar_btn_clicked" not in st.session_state:
+    st.session_state.sidebar_btn_clicked = False
 
+# Function to update state when button is clicked
+def click_sidebar_button():
+    st.session_state.sidebar_btn_clicked = True
+
+# Sidebar button with callback
+st.sidebar.button(
+    "Analyze Rate of Change of Flow Data",
+    on_click=click_sidebar_button
+)
+
+# Main app logic
+
+#st.write(f"Analyzing peak flow data for USGS Station ID: {usgs_station_id}, starting in {begin_year}, Mean Daily Flow Threshold: {pf_threshold} cfs")st.sidebar.button("Analyze Peak Flow Data"):
+
+if st.session_state.sidebar_btn_clicked: 
     
-    if not flow_derivative_df.empty:
+    if upload_type == "uploaded" and uploaded_file is not None:
+        data = pd.read_csv(uploaded_file,  on_bad_lines='skip', header = 0)
+        
+
+        col1, col2 = st.columns(2)
+        with col1:
+            date_column = st.info("Please select the column that contains the date information.")
+            date_col = st.selectbox("Select Date Column", options=data.columns, placeholder=None) 
+
+        with col2:
+            flow_column = st.info("Please select the column that contains the average flow information.")
+            flow_col = st.selectbox("Select Average Flow Column", options=data.columns, placeholder=None)
+
+        if st.button("Submit Columns"):
+            flow_derivative_df = rate_change_main(usgs_station_id, begin_year,data,date_col, flow_col, upload_type)            
+            begin_year = flow_derivative_df['date'].dt.year.min()
+
+    elif upload_type == "downloaded":
+        flow_derivative_df = rate_change_main(usgs_station_id, begin_year,data,date_col, flow_col, upload_type)
+
+    if flow_derivative_df is not None:
+        st.write(f"Analyzing base flow data for USGS Station ID: {usgs_station_id}, analysis starting in {begin_year}")
+        st.divider()
+    
+        
+        flow_derivative_df['date'] = pd.to_datetime(flow_derivative_df['date'], errors='coerce')
+        flow_derivative_df['datetime'] = flow_derivative_df['date']
+        #subset flow_derivative_df to only include dates between august 1 and november 1
+        
+
+        
+        
         #find the last year data was collected
         last_year = str(flow_derivative_df['date'].max())
         last_year = last_year.split(" ")[0]
@@ -139,5 +197,4 @@ if st.sidebar.button("Analyze Rate of Change of Flow Data"):
         
         else:
             st.write("No outliers detected in flow derivatives.")
-    else:
-        st.warning("No data available for the selected parameters.")
+   
