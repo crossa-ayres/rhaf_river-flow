@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import altair as alt
 from datetime import datetime
-import plotly.express as px
+
 
 from utils.peak_flow.peakFlow_utils import peakFlow_main as pfm, generate_summary_df
 from utils.common_utils.utils import subset_by_season, plot_seasonal_data, manual_upload_daily_flow_data,plot_waterYear_data, return_waterYr_dict, clean_manual_date_column
