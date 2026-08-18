@@ -7,8 +7,8 @@ import altair as alt
 from datetime import datetime
 
 
-from utils.peak_flow.peakFlow_utils import peakFlow_main as pfm, generate_summary_df
-from utils.common_utils.utils import subset_by_season, plot_seasonal_data, manual_upload_daily_flow_data,plot_waterYear_data, return_waterYr_dict, clean_manual_date_column
+from utils.peak_flow.peakFlow_utils import peakFlow_main as pfm
+from utils.common_utils.utils import return_waterYr_dict
 
 
 df = None
@@ -51,6 +51,7 @@ if st.sidebar.checkbox("**Download data from USGS website**", value=False, key="
 
 elif st.sidebar.checkbox("**Manually upload peak flow data**", value=False, key="upload_data"):
     uploaded_file = st.sidebar.file_uploader("Upload Peak Flow Data csv file", type=["csv"])
+    usgs_station_id = st.sidebar.text_input("**USGS Station ID**", value= "")
     pf_threshold = 0
     end_year = datetime.now().year
     upload_type = "uploaded"
@@ -118,8 +119,10 @@ if st.session_state.sidebar_btn_clicked:
         #find the last year data was collected
         last_year = str(df['date'].max())
         last_year = last_year.split(" ")[0]
+        starting_year = str(df['date'].min())
+        starting_year = starting_year.split(" ")[0]
         st.divider()
-        st.write(f"### Gage ID {usgs_station_id} contains data up until {last_year}")
+        st.write(f"### Gage ID {usgs_station_id} contains data from {starting_year} up until {last_year}")
         st.subheader(f"Plotted average daily flow values for gage {usgs_station_id}")
         st.line_chart(df.set_index('date')['avg_flow'], use_container_width=True, height=800, x_label="Year", y_label="Average Daily Flow (cfs)")
         st.divider()

@@ -3,10 +3,11 @@ import pandas as pd
 from PIL import Image
 import altair as alt
 from datetime import datetime
+import IPython
 
 st.set_page_config(layout='wide')
 from utils.base_flow.baseFlow_utils import baseFlow_main as bfm,generate_summary_df
-from utils.common_utils.utils import subset_by_season, plot_seasonal_data, water_year_flows, return_waterYr_dict
+from utils.common_utils.utils import water_year_flows, return_waterYr_dict, manual_boxplot
 
 df = None
 upload_type = None
@@ -142,7 +143,12 @@ if st.session_state.sidebar_btn_clicked:
             
             monthly_average_flow = df.groupby('month')['avg_flow'].mean().reset_index()
             monthly_average_flow['month_txt'] = monthly_average_flow['month'].map(month_dict)
+
+
+            chart = manual_boxplot(monthly_average_flow, category_col='month', value_col='avg_flow', whisker_coef=1.5)
             
+            st.altair_chart(chart, use_container_width=True)
+
             monthly_bar_chart = alt.Chart(monthly_average_flow).mark_bar(opacity=0.6,color = 'blue').encode(
             x=alt.X('month:O',title='Month'),
             y=alt.Y('avg_flow:Q', title='Average Monthly Flow (cfs)')
@@ -150,6 +156,7 @@ if st.session_state.sidebar_btn_clicked:
             width=600,
             height=800
             )
+
             #set the x axis labels to be the month text
             labels = alt.Chart(monthly_average_flow).mark_text(
                 align='center',
