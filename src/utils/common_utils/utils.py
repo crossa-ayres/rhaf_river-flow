@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
 import folium
+import altair as alt
 from streamlit_folium import folium_static
 import re
 from utils.common_utils.data_processing import download_usgs_data, extract_site_info, download_site_coords
@@ -112,10 +113,18 @@ def load_flow_data(file_path):
         pd.DataFrame: The loaded peak flow data.
     """
     try:
-        df = pd.read_csv(file_path, delimiter='\t', on_bad_lines='skip', skiprows=29, header = None)
-        
-        df.columns = ['agency_cd', 'site_no', 'date', 'avg_flow', 'qc']
-        df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+        # `download_usgs_data` writes a plain CSV with these column names. The
+        # previous read parsed the legacy NWIS RDB text -- tab-delimited with a
+        # 29-line header -- which the modernised API no longer returns.
+        df = pd.read_csv(file_path)
+        missing = {'agency_cd', 'site_no', 'date', 'avg_flow', 'qc'} - set(df.columns)
+        if missing:
+            raise ValueError(
+                f"{file_path} is missing columns {sorted(missing)}. If this is "
+                "an old flow_data.txt from the legacy RDB service, delete it "
+                "and re-download."
+            )
+        df['date'] = pd.to_datetime(df['date'])
         df['avg_flow'] = pd.to_numeric(df['avg_flow'], errors='coerce')
         #add column contining just the year
         df['year'] = df['date'].dt.year
@@ -134,7 +143,83 @@ def load_flow_data(file_path):
        
         return None
     
+def manual_boxplot(df, category_col, value_col, whisker_coef=1.5):
+    """
+    Create a manual box-and-whisker plot in Altair with custom column names.
+    
+    Parameters:
+        df (pd.DataFrame): Your dataset
+        category_col (str): Column name for categories (nominal)
+        value_col (str): Column name for numeric values
+        whisker_coef (float): Whisker length multiplier (default 1.5)
+    """
 
+    # Compute stats per category
+    def boxplot_stats(group):
+        q1 = group.quantile(0.25)
+        q3 = group.quantile(0.75)
+        iqr = q3 - q1
+        lower_whisker = max(group.min(), q1 - whisker_coef * iqr)
+        upper_whisker = min(group.max(), q3 + whisker_coef * iqr)
+        median = group.median()
+        return pd.Series({
+            'q1': q1,
+            'q3': q3,
+            'median': median,
+            'lower_whisker': lower_whisker,
+            'upper_whisker': upper_whisker
+        })
+
+    stats = df.groupby(category_col)[value_col].apply(boxplot_stats).reset_index()
+
+    # Box (Q1 to Q3)
+    box = alt.Chart(stats).mark_bar(size=30).encode(
+        x=f'{category_col}:Q',
+        y='q1:Q',
+        y2='q3:Q'
+    )
+
+    # Median line
+    median_line = alt.Chart(stats).mark_rule(color='black').encode(
+        x=f'{category_col}:Q',
+        y='median:Q'
+    )
+
+    # Whiskers
+    whisker_lower = alt.Chart(stats).mark_rule().encode(
+        x=f'{category_col}:Q',
+        y='lower_whisker:Q',
+        y2='q1:Q'
+    )
+
+    whisker_upper = alt.Chart(stats).mark_rule().encode(
+        x=f'{category_col}:Q',
+        y='q3:Q',
+        y2='upper_whisker:Q'
+    )
+
+    # Whisker caps
+    cap_lower = alt.Chart(stats).mark_tick(size=30).encode(
+        x=f'{category_col}:Q',
+        y='lower_whisker:Q'
+    )
+
+    cap_upper = alt.Chart(stats).mark_tick(size=30).encode(
+        x=f'{category_col}:Q',
+        y='upper_whisker:Q'
+    )
+
+    # Outliers
+    #outliers = df.merge(stats[[category_col, 'lower_whisker', 'upper_whisker']], on=category_col)
+    #outliers = outliers[(outliers[value_col] < outliers['lower_whisker']) |
+    #                    (outliers[value_col] > outliers['upper_whisker'])]
+
+    #outlier_points = alt.Chart(outliers).mark_point(color='red').encode(
+    #    x=f'{category_col}:N',
+    #    y=f'{value_col}:Q'
+    #)
+
+    return box + median_line + whisker_lower + whisker_upper + cap_lower + cap_upper 
 
 
 
