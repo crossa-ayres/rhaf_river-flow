@@ -244,17 +244,32 @@ def clean_temp_files(file_path, info_path):
             
                 
 def create_location_plot(info_path, site_id):
-    location_df = extract_site_info(info_path)
-    attr = ('Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a>')
+    """Draw the gage on a map. A failure here must not lose the analysis.
+
+    The map is context, not the result. Raising from this function threw away a
+    completed flow analysis over a decoration, so anything that goes wrong is
+    reported and stepped over.
+    """
+    try:
+        location_df = extract_site_info(info_path)
+        # `location_df["latitude"]` is a Series, not a number. Older folium
+        # coerced a one-element Series to a float; current versions validate the
+        # location and reject it, which is why this only appeared once deployed.
+        latitude = float(location_df["latitude"].iloc[0])
+        longitude = float(location_df["longitude"].iloc[0])
+    except Exception as exc:
+        st.warning(f"Could not place gage {site_id} on a map: {exc}")
+        return
+
     tiles = 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}'
-    
-    m = folium.Map(location=[location_df["latitude"],location_df["longitude"]], tiles=tiles,attr = "Aerial Imagery", zoom_start=16)
-    
+    m = folium.Map(location=[latitude, longitude], tiles=tiles,
+                   attr="Aerial Imagery", zoom_start=16)
     folium.Marker(
-        [location_df["latitude"], location_df["longitude"]], popup=f"Gage {site_id} location", tooltip=f"Gage {site_id} location"
+        [latitude, longitude],
+        popup=f"Gage {site_id} location",
+        tooltip=f"Gage {site_id} location",
     ).add_to(m)
-    
-    #folium.LayerControl().add_to(m)
+
     st.header(f"Gage {site_id} Location")
     folium_static(m, width=3000, height=500)
             
